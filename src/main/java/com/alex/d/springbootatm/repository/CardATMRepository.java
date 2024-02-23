@@ -1,21 +1,18 @@
 package com.alex.d.springbootatm.repository;
 
-import com.alex.d.springbootatm.model.CardATM;
+import com.alex.d.springbootatm.model.BankCard;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
-public interface CardATMRepository extends JpaRepository<CardATM, Long> {
+public interface CardATMRepository extends JpaRepository<BankCard, Long> {
 
+    Optional<BankCard> findByCardNumber(String cardNum);
 
-    //    Optional<CardATM> findByCardNumber(String cardNum);
-    CardATM findByCardNumber(String cardNum);
-
-    //    CardATM findByBalanceOrderByCardNumber(BigDecimal balance);
-    List<CardATM> findByBalanceOrderByCardNumber(BigDecimal balance);
 
 }

@@ -1,19 +1,16 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.CardATM;
+import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.repository.CardATMRepository;
 import com.alex.d.springbootatm.service.CardService;
-import com.alex.d.springbootatm.service.TransactionService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -29,10 +26,10 @@ public class CardController {
     }
 
     @GetMapping("/card")
-    public ResponseEntity<CardATM> cardForm() {
+    public ResponseEntity<BankCard> cardForm() {
         log.info("Handling /api/card request");
         // Генерация номера карты и пин-кода
-        CardATM card = cardService.createCard();
+        BankCard card = cardService.createCard();
         // Возвращение сгенерированной карты в качестве ответа
         log.info("Generated card: {}", card);
 
@@ -40,26 +37,26 @@ public class CardController {
     }
 
     @GetMapping("/card/{cardNumber}")
-    public ResponseEntity<CardATM> getCardByNumber(@PathVariable String cardNumber) {
-        CardATM card = cardService.findByCardNumber(cardNumber);
-        if (card == null) {
+    public ResponseEntity<Optional<BankCard>> getCardByNumber(@PathVariable Long cardNumber) {
+        Optional<BankCard> card = cardService.findByCardNumber(String.valueOf(cardNumber));
+        if (card.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(card);
     }
 
     @PostMapping
-    public ResponseEntity<CardATM> createCard(@RequestBody CardATM card) {
+    public ResponseEntity<BankCard> createCard(@RequestBody BankCard card) {
         log.info("Creating new card: {}", card);
-        CardATM createdCard = cardService.saveCard(card);
+        BankCard createdCard = cardService.saveCard(card);
         log.info("New card created: {}", createdCard);
         return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
     }
 
 
     @GetMapping("/cards")
-    public ResponseEntity<List<CardATM>> getAllCards() {
-        List<CardATM> cards = cardATMRepository.findAll();
+    public ResponseEntity<List<BankCard>> getAllCards() {
+        List<BankCard> cards = cardATMRepository.findAll();
         log.info("Retrieved {} cards from the database", cards.size());
         return ResponseEntity.ok(cards);
     }

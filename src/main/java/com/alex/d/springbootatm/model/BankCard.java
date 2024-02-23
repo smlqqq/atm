@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
 @Getter
@@ -16,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "atm_accounts")
-public class CardATM {
+public class BankCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -30,12 +29,6 @@ public class CardATM {
 
     @Column(name = "balance")
     private BigDecimal balance;
-
-//    @OneToMany(mappedBy = "senderCard", fetch = FetchType.LAZY)
-//    private List<TransactionATM> sentTransactions;
-//
-//    @OneToMany(mappedBy = "recipientCard", fetch = FetchType.LAZY)
-//    private List<TransactionATM> receivedTransactions;
 
 }
 

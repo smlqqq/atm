@@ -28,10 +28,16 @@ public class TransactionATM {
     private LocalDateTime timestamp;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "sender_card_number", referencedColumnName = "card_number")
-    private CardATM senderCard;
+    @JoinColumn(name = "sender", referencedColumnName = "card_number")
+    private BankCard senderCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "recipient_card_number", referencedColumnName = "card_number")
-    private CardATM recipientCard;
+    @JoinColumn(name = "recipient", referencedColumnName = "card_number")
+    private BankCard recipientCard;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "atm_name", referencedColumnName = "name")
+    private ATM senderATM;
+
+
 }
