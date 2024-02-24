@@ -53,7 +53,7 @@ public class ManagerController {
             }
     )
 
-    @PostMapping("/delete/{cardNumber}")
+    @DeleteMapping("/delete/{cardNumber}")
     public ResponseEntity<Void> deleteCard (@PathVariable("cardNumber") String cardNumber) {
         try {
             atmService.deleteCardByNumber(cardNumber);

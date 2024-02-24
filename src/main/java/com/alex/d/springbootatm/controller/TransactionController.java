@@ -90,7 +90,7 @@ public class TransactionController {
                     @ApiResponse(responseCode = "400", description = "Failed to deposit funds")
             }
     )
-    @PostMapping("/deposit")
+    @PutMapping("/deposit")
     public ResponseEntity<String> depositCash(
             @Parameter(description = "Recipient card number", required = true) @RequestParam("cardNumber") String recipientCardNumber,
             @Parameter(description = "Amount to deposit", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException {
