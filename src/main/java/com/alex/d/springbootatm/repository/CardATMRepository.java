@@ -13,4 +13,5 @@ public interface CardATMRepository extends JpaRepository<BankCard, Long> {
     Optional<BankCard> findByCardNumber(String cardNum);
 
 
+    Optional<BankCard> deleteByCardNumber(String cardNumber);
 }

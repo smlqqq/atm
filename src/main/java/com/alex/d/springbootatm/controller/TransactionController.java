@@ -3,8 +3,8 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.exception.InsufficientFundsException;
 import com.alex.d.springbootatm.model.BankCard;
-import com.alex.d.springbootatm.service.CardService;
-import com.alex.d.springbootatm.service.TransactionService;
+
+import com.alex.d.springbootatm.service.ATMService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,20 +18,18 @@ import java.util.Optional;
 
 @RestController
 @Slf4j
-@RequestMapping("/v1")
+@RequestMapping("/api/v1")
 @Tag(name = "Transactions")
-
-
 public class TransactionController {
 
 
-    private final CardService cardService;
+    private final ATMService atmService;
 
-    private final TransactionService transactionService;
+    private final ATMService ATMService;
 
-    public TransactionController(CardService cardService, TransactionService transactionService) {
-        this.cardService = cardService;
-        this.transactionService = transactionService;
+    public TransactionController(ATMService atmService, ATMService ATMService) {
+        this.atmService = atmService;
+        this.ATMService = ATMService;
     }
 
     @Operation(
@@ -53,8 +51,8 @@ public class TransactionController {
             @RequestParam("amount") BigDecimal amount
     ) throws CardNotFoundException {
         try {
-            Optional<BankCard> senderCard = cardService.findByCardNumber(senderCardNumber);
-            Optional<BankCard> recipientCard = cardService.findByCardNumber(recipientCardNumber);
+            Optional<BankCard> senderCard = atmService.findByCardNumber(senderCardNumber);
+            Optional<BankCard> recipientCard = atmService.findByCardNumber(recipientCardNumber);
 
             if (senderCard.isEmpty()) {
                 log.error("Sender card not found: {}", senderCardNumber);
@@ -72,7 +70,7 @@ public class TransactionController {
                 return ResponseEntity.badRequest().body("Insufficient funds on sender's card.");
             }
 
-            transactionService.sendTransaction(senderCard, recipientCard, amount);
+            ATMService.sendTransaction(senderCard, recipientCard, amount);
 
             log.info("Transactions of {} from card {} to card {} was successful.",
                     amount, senderCardNumber, recipientCardNumber);
@@ -93,18 +91,18 @@ public class TransactionController {
             }
     )
     @PostMapping("/deposit")
-    public ResponseEntity<String> deposit(
+    public ResponseEntity<String> depositCash(
             @Parameter(description = "Recipient card number", required = true) @RequestParam("cardNumber") String recipientCardNumber,
             @Parameter(description = "Amount to deposit", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException {
 
         try {
-            Optional<BankCard> recipientCard = cardService.findByCardNumber(recipientCardNumber);
+            Optional<BankCard> recipientCard = atmService.findByCardNumber(recipientCardNumber);
             if (recipientCard.isEmpty()) {
                 log.error("Card not found: {}", recipientCardNumber, new CardNotFoundException("Card not found."));
                 return ResponseEntity.badRequest().body("Card not found.");
             }
 
-            transactionService.depositFromATM(recipientCard, amount);
+            ATMService.depositCashFromATM(recipientCard, amount);
 
             log.info("Deposit of {} to card {} was successful.", amount, recipientCardNumber);
 
@@ -130,7 +128,7 @@ public class TransactionController {
             @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException, InsufficientFundsException {
 
         try {
-            Optional<BankCard> card = cardService.findByCardNumber(cardNumber);
+            Optional<BankCard> card = atmService.findByCardNumber(cardNumber);
             if (card.isEmpty()) {
                 log.error("Card not found: {}", cardNumber, new CardNotFoundException("Card not found."));
                 return ResponseEntity.badRequest().body("Card not found.");
@@ -142,7 +140,7 @@ public class TransactionController {
                 return ResponseEntity.badRequest().body("Insufficient funds on your card.");
             }
 
-            transactionService.withdrawFromATM(card, amount);
+            ATMService.withdrawFromATM(card, amount);
 
             log.info("Withdrawal of {} from card {} was successful.", amount, cardNumber);
 

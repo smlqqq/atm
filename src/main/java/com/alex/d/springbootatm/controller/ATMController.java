@@ -3,9 +3,8 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.repository.CardATMRepository;
-import com.alex.d.springbootatm.service.CardService;
+import com.alex.d.springbootatm.service.ATMService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -14,20 +13,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
 
 @Controller
 @Slf4j
-@RequestMapping("/v1")
+@RequestMapping("/api/v1")
 @Tag(name="Bank card")
-public class CardController {
+public class ATMController {
 
-    private final CardService cardService;
+    private final ATMService atmService;
     private final CardATMRepository cardATMRepository;
 
-    public CardController(CardService cardService, CardATMRepository cardATMRepository) {
-        this.cardService = cardService;
+    public ATMController(ATMService atmService, CardATMRepository cardATMRepository) {
+        this.atmService = atmService;
         this.cardATMRepository = cardATMRepository;
     }
 
@@ -38,67 +36,46 @@ public class CardController {
                     @ApiResponse(responseCode = "201", description = "Bank card created successfully")
             }
     )
-    @GetMapping("/card")
-    public ResponseEntity<BankCard> cardForm() {
-        log.info("Handling /api/card request");
-        // Генерация номера карты и пин-кода
-        BankCard card = cardService.createCard();
-        // Возвращение сгенерированной карты в качестве ответа
-        log.info("Generated card: {}", card);
-
-        return new ResponseEntity<>(card, HttpStatus.OK);
+    @PostMapping("/card")
+    public ResponseEntity<BankCard> createNewCard(@RequestBody BankCard card) {
+        log.info("Creating new card: {}", card);
+        BankCard createdCard = atmService.createCard();
+        log.info("New card created: {}", createdCard);
+        return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
     }
 
     @Operation(
-            summary = "Get bank card by card number",
+            summary = "Check balance",
             description = "Retrieve bank card details by providing the card number",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success"),
                     @ApiResponse(responseCode = "404", description = "Card not found")
             }
     )
-    @GetMapping("/card/{cardNumber}")
-    public ResponseEntity<Optional<BankCard>> getCardByNumber(@PathVariable Long cardNumber) {
-        try {
-            Optional<BankCard> card = cardService.findByCardNumber(String.valueOf(cardNumber));
-            if (card.isEmpty()) {
-                throw new CardNotFoundException("Card not found");
-            }
-            return ResponseEntity.ok(card);
-        } catch (CardNotFoundException e) {
-            log.error("Card not found: {}", cardNumber, e);
-            return ResponseEntity.notFound().build();
-        }
+
+    @GetMapping("/balance/{cardNumber}")
+    public ResponseEntity<BigDecimal> getBalance (
+            @PathVariable Long cardNumber
+    ) throws CardNotFoundException {
+        return ResponseEntity.ok(atmService.checkBalance(String.valueOf(cardNumber)));
     }
 
-//    @Operation(
-//            summary = "Create new bank card",
-//            description = "Create a new bank card using the provided details",
-//            responses = {
-//                    @ApiResponse(responseCode = "201", description = "Bank card created successfully")
+
+//    @GetMapping("/balance/{cardNumber}")
+//    public ResponseEntity<Optional<BankCard>> getBalance(@PathVariable Long cardNumber) {
+//        try {
+//            Optional<BankCard> card = atmService.findByCardNumber(String.valueOf(cardNumber));
+//            if (card.isEmpty()) {
+//                throw new CardNotFoundException("Card not found");
 //            }
-//    )
-    @PostMapping("/card")
-    public ResponseEntity<BankCard> createCard(@RequestBody BankCard card) {
-        log.info("Creating new card: {}", card);
-        BankCard createdCard = cardService.saveCard(card);
-        log.info("New card created: {}", createdCard);
-        return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
-    }
+//            return ResponseEntity.ok(card);
+//        } catch (CardNotFoundException e) {
+//            log.error("Card not found: {}", cardNumber, e);
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
+}
 
-    @Operation(
-            summary = "Get all bank cards",
-            description = "Retrieve details of all bank cards",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Success")
-            }
-    )
-    @GetMapping("/cards")
-    public ResponseEntity<List<BankCard>> getAllCards() {
-        List<BankCard> cards = cardATMRepository.findAll();
-        log.info("Retrieved {} cards from the database", cards.size());
-        return ResponseEntity.ok(cards);
-    }
 
 //    @Operation(
 //            summary = "Delete bank card",
@@ -132,7 +109,7 @@ public class CardController {
 //    }
 
 
-}
+
 
 
 

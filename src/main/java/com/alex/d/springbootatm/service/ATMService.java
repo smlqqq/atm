@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
-public class TransactionService {
+public class ATMService {
 
     private final TransactionRepo transactionRepo;
     private final CardATMRepository cardATMRepository;
@@ -26,7 +26,7 @@ public class TransactionService {
     private final Random random = new Random();
 
 
-    public TransactionService(TransactionRepo transactionRepo, CardATMRepository cardATMRepository, ATMRepository atmRepository) {
+    public ATMService(TransactionRepo transactionRepo, CardATMRepository cardATMRepository, ATMRepository atmRepository) {
         this.transactionRepo = transactionRepo;
         this.cardATMRepository = cardATMRepository;
         this.atmRepository = atmRepository;
@@ -69,7 +69,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public void depositFromATM(Optional<BankCard> optionalRecipientCard, BigDecimal amount) throws CardNotFoundException {
+    public void depositCashFromATM(Optional<BankCard> optionalRecipientCard, BigDecimal amount) throws CardNotFoundException {
         BankCard recipientCard = optionalRecipientCard.orElseThrow(() -> new CardNotFoundException("Recipient card not found."));
 
         // Увеличение баланса карты
@@ -117,4 +117,60 @@ public class TransactionService {
         transactionRepo.save(transactions);
 
     }
+
+    public BankCard createCard() {
+        BankCard card = new BankCard();
+        card.setCardNumber(generateCreditCardNumber());
+        card.setPinNumber(generatePinCode());
+        card.setBalance(generateBalance());
+        return cardATMRepository.save(card);
+    }
+
+    private String generatePinCode() {
+        Random random = new Random();
+        return String.format("%04d", random.nextInt(10000));
+    }
+
+    public String generateCreditCardNumber() {
+        StringBuilder sb = new StringBuilder("4"); // Начинаем с 4, как у Visa
+        for (int i = 1; i < 15; i++) {
+            sb.append((int) (Math.random() * 10));
+        }
+
+        String prefix = sb.toString();
+        int checksum = LuhnsAlgorithm.calculateLuhnChecksum(prefix);
+        sb.append(checksum);
+
+        return sb.toString();
+    }
+
+    public BigDecimal generateBalance() {
+        return BigDecimal.valueOf(0); // Используйте вашу логику для генерации начального баланса
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<BankCard> findByCardNumber(String cardNumber) {
+        return cardATMRepository.findByCardNumber(cardNumber);
+    }
+
+    @Transactional
+    public BigDecimal checkBalance(String cardNumber) throws CardNotFoundException {
+        Optional<BankCard> card = cardATMRepository.findByCardNumber(cardNumber);
+        if (card.isEmpty()) {
+            throw new CardNotFoundException("Card not found");
+        }
+        return card.get().getBalance();
+    }
+
+    @Transactional
+    public Optional<BankCard> deleteCardByNumber(String cardNumber) throws CardNotFoundException {
+        Optional<BankCard> cardOptional = cardATMRepository.findByCardNumber(cardNumber);
+        if (cardOptional.isPresent()) {
+            cardATMRepository.deleteByCardNumber(cardNumber);
+            return cardOptional;
+        } else {
+            throw new CardNotFoundException("Card with number " + cardNumber + " not found");
+        }
+    }
+
 }
