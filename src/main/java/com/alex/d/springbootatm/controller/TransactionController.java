@@ -74,10 +74,10 @@ public class TransactionController {
 
             transactionService.sendTransaction(senderCard, recipientCard, amount);
 
-            log.info("Transaction of {} from card {} to card {} was successful.",
+            log.info("Transactions of {} from card {} to card {} was successful.",
                     amount, senderCardNumber, recipientCardNumber);
 
-            return ResponseEntity.ok("Transaction sent successfully.");
+            return ResponseEntity.ok("Transactions sent successfully.");
         } catch (Exception e) {
             log.error("Failed to send transaction: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Failed to send transaction: " + e.getMessage());
@@ -104,7 +104,7 @@ public class TransactionController {
                 return ResponseEntity.badRequest().body("Card not found.");
             }
 
-            transactionService.depositFromATM(recipientCard, amount); // Передача объекта BankCard
+            transactionService.depositFromATM(recipientCard, amount);
 
             log.info("Deposit of {} to card {} was successful.", amount, recipientCardNumber);
 
@@ -136,7 +136,13 @@ public class TransactionController {
                 return ResponseEntity.badRequest().body("Card not found.");
             }
 
-            transactionService.withdrawFromATM(card, amount); // Передача объекта BankCard
+            BigDecimal senderBalance = card.get().getBalance();
+            if (senderBalance.compareTo(amount) < 0) {
+                log.error("Insufficient funds on your card: {}", card, new InsufficientFundsException("Insufficient funds on your card."));
+                return ResponseEntity.badRequest().body("Insufficient funds on your card.");
+            }
+
+            transactionService.withdrawFromATM(card, amount);
 
             log.info("Withdrawal of {} from card {} was successful.", amount, cardNumber);
 

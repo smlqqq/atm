@@ -3,7 +3,7 @@ package com.alex.d.springbootatm.service;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.ATM;
 import com.alex.d.springbootatm.model.BankCard;
-import com.alex.d.springbootatm.model.Transaction;
+import com.alex.d.springbootatm.model.Transactions;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.CardATMRepository;
 import com.alex.d.springbootatm.repository.TransactionRepo;
@@ -33,8 +33,8 @@ public class TransactionService {
     }
 
     @Transactional
-    public void saveTransaction(Transaction transaction) {
-        transactionRepo.save(transaction);
+    public void saveTransaction(Transactions transactions) {
+        transactionRepo.save(transactions);
     }
 
     @Transactional
@@ -43,14 +43,14 @@ public class TransactionService {
             BankCard senderCard = optionalSenderCard.get();
             BankCard recipientCard = optionalRecipientCard.get();
 
-            // Create a new transaction
-            Transaction transaction = new Transaction();
-            transaction.setTransactionType("SEND");
-            transaction.setAmount(amount);
-            transaction.setTimestamp(LocalDateTime.now());
-            transaction.setSenderCard(senderCard);
-            transaction.setRecipientCard(recipientCard);
-            saveTransaction(transaction);
+            // Create a new transactions
+            Transactions transactions = new Transactions();
+            transactions.setTransactionType("SEND");
+            transactions.setAmount(amount);
+            transactions.setTimestamp(LocalDateTime.now());
+            transactions.setSenderCard(senderCard);
+            transactions.setRecipientCard(recipientCard);
+            saveTransaction(transactions);
 
             // Update sender's balance
             BigDecimal newSenderBalance = senderCard.getBalance().subtract(amount);
@@ -85,14 +85,14 @@ public class TransactionService {
         ATM randomAtmName = allAtmNames.get(randomIndex);
 
         // Создание и сохранение транзакции
-        Transaction transaction = new Transaction();
-        transaction.setTransactionType("DEPOSIT_FROM_ATM");
-        transaction.setAmount(amount);
-        transaction.setTimestamp(LocalDateTime.now());
-        transaction.setSenderATM(randomAtmName);
-        transaction.setRecipientCard(recipientCard);
+        Transactions transactions = new Transactions();
+        transactions.setTransactionType("DEPOSIT_FROM_ATM");
+        transactions.setAmount(amount);
+        transactions.setTimestamp(LocalDateTime.now());
+        transactions.setSenderATM(randomAtmName);
+        transactions.setRecipientCard(recipientCard);
 
-        transactionRepo.save(transaction);
+        transactionRepo.save(transactions);
     }
 
 
@@ -107,14 +107,14 @@ public class TransactionService {
         int randomIndex = random.nextInt(allATMnames.size());
         ATM randomNameOfATM = allATMnames.get(randomIndex);
 
-        Transaction transaction = new Transaction();
-        transaction.setTransactionType("WITHDRAW_FROM_ATM");
-        transaction.setAmount(amount);
-        transaction.setTimestamp(LocalDateTime.now());
-        transaction.setSenderATM(randomNameOfATM);
-        transaction.setRecipientCard(cardNumber);
+        Transactions transactions = new Transactions();
+        transactions.setTransactionType("WITHDRAW_FROM_ATM");
+        transactions.setAmount(amount);
+        transactions.setTimestamp(LocalDateTime.now());
+        transactions.setSenderATM(randomNameOfATM);
+        transactions.setRecipientCard(cardNumber);
 
-        transactionRepo.save(transaction);
+        transactionRepo.save(transactions);
 
     }
 }
