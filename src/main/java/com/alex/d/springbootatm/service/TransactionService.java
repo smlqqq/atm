@@ -3,7 +3,7 @@ package com.alex.d.springbootatm.service;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.ATM;
 import com.alex.d.springbootatm.model.BankCard;
-import com.alex.d.springbootatm.model.TransactionATM;
+import com.alex.d.springbootatm.model.Transaction;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.CardATMRepository;
 import com.alex.d.springbootatm.repository.TransactionRepo;
@@ -23,6 +23,8 @@ public class TransactionService {
     private final CardATMRepository cardATMRepository;
     private final ATMRepository atmRepository;
 
+    private final Random random = new Random();
+
 
     public TransactionService(TransactionRepo transactionRepo, CardATMRepository cardATMRepository, ATMRepository atmRepository) {
         this.transactionRepo = transactionRepo;
@@ -31,7 +33,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public void saveTransaction(TransactionATM transaction) {
+    public void saveTransaction(Transaction transaction) {
         transactionRepo.save(transaction);
     }
 
@@ -42,7 +44,7 @@ public class TransactionService {
             BankCard recipientCard = optionalRecipientCard.get();
 
             // Create a new transaction
-            TransactionATM transaction = new TransactionATM();
+            Transaction transaction = new Transaction();
             transaction.setTransactionType("SEND");
             transaction.setAmount(amount);
             transaction.setTimestamp(LocalDateTime.now());
@@ -77,22 +79,42 @@ public class TransactionService {
         // Случайное имя банкомата из списка уже имеющихся
         List<ATM> allAtmNames = atmRepository.findAll(); // Предполагается, что у вас есть метод в atmRepository для получения всех имен банкоматов
         // Генерация случайного индекса для выбора случайного имени банкомата
-        Random random = new Random();
+
         int randomIndex = random.nextInt(allAtmNames.size());
         // Получение случайного имени банкомата
         ATM randomAtmName = allAtmNames.get(randomIndex);
 
         // Создание и сохранение транзакции
-        TransactionATM transaction = new TransactionATM();
+        Transaction transaction = new Transaction();
         transaction.setTransactionType("DEPOSIT_FROM_ATM");
         transaction.setAmount(amount);
         transaction.setTimestamp(LocalDateTime.now());
         transaction.setSenderATM(randomAtmName);
-        transaction.setRecipientCard(recipientCard); // Установка карты получателя
+        transaction.setRecipientCard(recipientCard);
 
         transactionRepo.save(transaction);
     }
 
 
+    @Transactional
+    public void withdrawFromATM(Optional<BankCard> card, BigDecimal amount) throws CardNotFoundException {
+        BankCard cardNumber = card.orElseThrow(() -> new CardNotFoundException("Card not found."));
 
+        BigDecimal newBalance = cardNumber.getBalance().subtract(amount);
+        cardNumber.setBalance(newBalance);
+
+        List<ATM> allATMnames = atmRepository.findAll();
+        int randomIndex = random.nextInt(allATMnames.size());
+        ATM randomNameOfATM = allATMnames.get(randomIndex);
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionType("WITHDRAW_FROM_ATM");
+        transaction.setAmount(amount);
+        transaction.setTimestamp(LocalDateTime.now());
+        transaction.setSenderATM(randomNameOfATM);
+        transaction.setRecipientCard(cardNumber);
+
+        transactionRepo.save(transaction);
+
+    }
 }
