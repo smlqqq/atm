@@ -141,10 +141,11 @@ public class ATMService {
     }
 
     @Transactional
-    public void deleteCardByNumber(String cardNumber) throws CardNotFoundException {
+    public Optional<BankCard> deleteCardByNumber(String cardNumber) throws CardNotFoundException {
         Optional<BankCard> cardOptional = bankCardRepository.findByCardNumber(cardNumber);
         if (cardOptional.isPresent()) {
             bankCardRepository.deleteByCardNumber(cardNumber);
+            return cardOptional;
         } else {
             throw new CardNotFoundException("Card with number " + cardNumber + " not found");
         }
