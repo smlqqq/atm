@@ -1,19 +1,21 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
+import com.alex.d.springbootatm.exception.InsufficientFundsException;
 import com.alex.d.springbootatm.model.BankCard;
-import com.alex.d.springbootatm.repository.CardATMRepository;
+import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.service.ATMService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -22,26 +24,11 @@ import java.math.BigDecimal;
 public class ATMController {
 
     private final ATMService atmService;
-    private final CardATMRepository cardATMRepository;
+    private final BankCardRepository bankCardRepository;
 
-    public ATMController(ATMService atmService, CardATMRepository cardATMRepository) {
+    public ATMController(ATMService atmService, BankCardRepository bankCardRepository) {
         this.atmService = atmService;
-        this.cardATMRepository = cardATMRepository;
-    }
-
-    @Operation(
-            summary = "Create new bank card",
-            description = "Create a new bank card using the provided details",
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Bank card created successfully")
-            }
-    )
-    @PostMapping("/card")
-    public ResponseEntity<BankCard> createNewCard(@RequestBody BankCard card) {
-        log.info("Creating new card: {}", card);
-        BankCard createdCard = atmService.createCard();
-        log.info("New card created: {}", createdCard);
-        return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
+        this.bankCardRepository = bankCardRepository;
     }
 
     @Operation(
@@ -54,72 +41,80 @@ public class ATMController {
     )
 
     @GetMapping("/balance/{cardNumber}")
-    public ResponseEntity<BigDecimal> getBalance (
+    public ResponseEntity<BigDecimal> getBalance(
             @PathVariable Long cardNumber
     ) throws CardNotFoundException {
+        log.info("Card: {} Balance: {}", cardNumber, atmService.checkBalance(String.valueOf(cardNumber)));
         return ResponseEntity.ok(atmService.checkBalance(String.valueOf(cardNumber)));
     }
 
+    @Operation(
+            summary = "Deposit funds to the specified card",
+            description = "Deposit funds to the specified card using ATM and amount",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Funds successfully deposited"),
+                    @ApiResponse(responseCode = "400", description = "Failed to deposit funds")
+            }
+    )
+    @PutMapping("/deposit")
+    public ResponseEntity<String> depositCash(
+            @Parameter(description = "Recipient card number", required = true) @RequestParam("cardNumber") String recipientCardNumber,
+            @Parameter(description = "Amount to deposit", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException {
 
-//    @GetMapping("/balance/{cardNumber}")
-//    public ResponseEntity<Optional<BankCard>> getBalance(@PathVariable Long cardNumber) {
-//        try {
-//            Optional<BankCard> card = atmService.findByCardNumber(String.valueOf(cardNumber));
-//            if (card.isEmpty()) {
-//                throw new CardNotFoundException("Card not found");
-//            }
-//            return ResponseEntity.ok(card);
-//        } catch (CardNotFoundException e) {
-//            log.error("Card not found: {}", cardNumber, e);
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
+        try {
+            Optional<BankCard> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+            if (recipientCard.isEmpty()) {
+                log.error("Card not found: {}", recipientCardNumber, new CardNotFoundException("Card not found."));
+                return ResponseEntity.badRequest().body("Card not found.");
+            }
+
+            atmService.depositCashFromATM(recipientCard, amount);
+
+            log.info("Deposit of {} to card {} was successful.", amount, recipientCardNumber);
+
+            return ResponseEntity.ok("Money successfully deposited.");
+
+        } catch (Exception e) {
+            log.error("Failed to deposit money: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to deposit money: " + e.getMessage());
+        }
+    }
+
+    @Operation(
+            summary = "Withdraw funds from ATM",
+            description = "Withdraw funds from the specified card using the provided card number and amount",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Funds successfully withdrawn"),
+                    @ApiResponse(responseCode = "400", description = "Failed to withdraw funds")
+            }
+    )
+    @PostMapping("/withdraw")
+    public ResponseEntity<String> withdraw(
+            @Parameter(description = "Card number", required = true) @RequestParam("cardNumber") String cardNumber,
+            @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException{
+
+        try {
+            Optional<BankCard> card = bankCardRepository.findByCardNumber(cardNumber);
+            if (card.isEmpty()) {
+                log.error("Card not found: {}", cardNumber, new CardNotFoundException("Card not found."));
+                return ResponseEntity.badRequest().body("Card not found.");
+            }
+
+            BigDecimal senderBalance = card.get().getBalance();
+            if (senderBalance.compareTo(amount) < 0) {
+                log.error("Insufficient funds on your card: {}", card, new InsufficientFundsException("Insufficient funds on your card."));
+                return ResponseEntity.badRequest().body("Insufficient funds on your card.");
+            }
+
+            atmService.withdrawFromATM(card, amount);
+
+            log.info("Withdrawal of {} from card {} was successful.", amount, cardNumber);
+
+            return ResponseEntity.ok("Money successfully withdrawn.");
+
+        } catch (Exception e) {
+            log.error("Failed to withdraw money: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to withdraw money: " + e.getMessage());
+        }
+    }
 }
-
-
-//    @Operation(
-//            summary = "Delete bank card",
-//            description = "Delete the bank card associated with the provided card number",
-//            responses = {
-//                    @ApiResponse(responseCode = "200", description = "Card successfully deleted"),
-//                    @ApiResponse(responseCode = "400", description = "Failed to delete card")
-//            }
-//    )
-//    @DeleteMapping("/card")
-//    public ResponseEntity<String> deleteCard(
-//            @Parameter(description = "Card number", required = true) @RequestParam("cardNumber") String cardNumber) {
-//
-//        try {
-//            Optional<BankCard> card = cardService.findByCardNumber(cardNumber);
-//            if (card.isEmpty()) {
-//                log.error("Card not found: {}", cardNumber, new CardNotFoundException("Card not found."));
-//                return ResponseEntity.badRequest().body("Card not found.");
-//            }
-//
-//            cardService.deleteCard(card);
-//
-//            log.info("Card {} was successfully deleted.", cardNumber);
-//
-//            return ResponseEntity.ok("Card successfully deleted.");
-//
-//        } catch (Exception e) {
-//            log.error("Failed to delete card: {}", e.getMessage());
-//            return ResponseEntity.badRequest().body("Failed to delete card: " + e.getMessage());
-//        }
-//    }
-
-
-
-
-
-
-
-//    @PostMapping("/card")
-//    public ResponseEntity<String> cardSubmit(@RequestParam("cardNumber") String cardNumber,
-//                                             @RequestParam("pinCode") String pinCode) {
-//        // Здесь можно добавить логику проверки номера карты и пин-кода
-//
-//        // Возвращение строки с перенаправлением в качестве ответа
-//        return new ResponseEntity<>("redirect:/personalPage", HttpStatus.OK);
-//    }
-

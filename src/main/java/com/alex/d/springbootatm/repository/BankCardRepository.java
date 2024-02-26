@@ -8,7 +8,7 @@ import java.util.Optional;
 
 
 @Repository
-public interface CardATMRepository extends JpaRepository<BankCard, Long> {
+public interface BankCardRepository extends JpaRepository<BankCard, Long> {
 
     Optional<BankCard> findByCardNumber(String cardNum);
 
