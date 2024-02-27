@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -19,15 +20,17 @@ import java.math.BigDecimal;
 @Controller
 @Slf4j
 @RequestMapping("/api/v1")
-@Tag(name="Bank card")
+@Tag(name = "Bank card")
 public class ATMController {
+    @Autowired
+    private ATMService atmService;
+    @Autowired
+    private BankCardRepository bankCardRepository;
 
-    private final ATMService atmService;
-    private final BankCardRepository bankCardRepository;
 
-    public ATMController(ATMService atmService, BankCardRepository bankCardRepository) {
-        this.atmService = atmService;
+    public ATMController(BankCardRepository bankCardRepository, ATMService atmService) {
         this.bankCardRepository = bankCardRepository;
+        this.atmService = atmService;
     }
 
     @Operation(
@@ -62,7 +65,7 @@ public class ATMController {
 
         try {
             BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
-            if (recipientCard==null) {
+            if (recipientCard == null) {
                 log.error("Card not found: {}", recipientCardNumber, new CardNotFoundException("Card not found."));
                 return ResponseEntity.badRequest().body("Card not found.");
             }
@@ -90,11 +93,11 @@ public class ATMController {
     @PostMapping("/withdraw")
     public ResponseEntity<String> withdraw(
             @Parameter(description = "Card number", required = true) @RequestParam("cardNumber") String cardNumber,
-            @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException{
+            @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException {
 
         try {
             BankCard card = bankCardRepository.findByCardNumber(cardNumber);
-            if (card==null) {
+            if (card == null) {
                 log.error("Card not found: {}", cardNumber, new CardNotFoundException("Card not found."));
                 return ResponseEntity.badRequest().body("Card not found.");
             }

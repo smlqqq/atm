@@ -8,21 +8,24 @@ import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 public class ATMServiceTest {
 
-    // Моки для репозиториев и сервиса
     @Mock
     private TransactionRepository transactionRepository;
 
@@ -32,104 +35,75 @@ public class ATMServiceTest {
     @Mock
     private ATMRepository atmRepository;
 
-    // Инжектируем ATMService с зависимостями моков
     @InjectMocks
     private ATMService atmService;
 
-    // Тест для проверки баланса карты
     @Test
     public void testCheckBalance() throws CardNotFoundException {
-        // Устанавливаем данные для теста
         String cardNumber = "1234567890123456";
         BankCard bankCard = new BankCard();
         bankCard.setCardNumber(cardNumber);
         bankCard.setBalance(BigDecimal.valueOf(1000));
-        // Когда вызывается метод findByCardNumber() с cardNumber, возвращаем bankCard
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn((bankCard));
-
-        // Вызываем метод, который мы хотим протестировать
         BigDecimal balance = atmService.checkBalance(cardNumber);
-
-        // Проверяем, что результат соответствует ожиданиям
         assertEquals(BigDecimal.valueOf(1000), balance);
     }
 
-    // Тест для удаления карты по номеру
     @Test
     public void testDeleteCardByNumber() throws CardNotFoundException {
-        // Устанавливаем данные для теста
         String cardNumber = "1234567890123456";
         BankCard bankCard = new BankCard();
         bankCard.setCardNumber(cardNumber);
-        // Когда вызывается метод findByCardNumber() с cardNumber, возвращаем bankCard
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn((bankCard));
-
-        // Вызываем метод, который мы хотим протестировать
         BankCard deletedCard = atmService.deleteCardByNumber(cardNumber);
-
-        // Проверяем, что возвращенная карта соответствует ожиданиям
-        assertEquals(Optional.of(bankCard), deletedCard);
+        assertEquals((bankCard), deletedCard);
     }
 
     @Test
     public void testSendTransaction() throws CardNotFoundException {
-        // Устанавливаем данные для теста
         BankCard senderCard = new BankCard();
         senderCard.setBalance(BigDecimal.valueOf(1000));
         BankCard recipientCard = new BankCard();
         recipientCard.setBalance(BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
-
-        when(bankCardRepository.findByCardNumber("senderCardNumber")).thenReturn((senderCard));
-        when(bankCardRepository.findByCardNumber("recipientCardNumber")).thenReturn((recipientCard));
-
-        // Вызываем метод, который мы хотим протестировать
-        atmService.sendTransaction(
-                (senderCard),
-                (recipientCard),
-                amount);
-
-        // Проверяем, что баланс отправителя уменьшился, а баланс получателя увеличился
+        atmService.sendTransaction((senderCard), (recipientCard), amount);
         verify(bankCardRepository, times(1)).save(senderCard);
         verify(bankCardRepository, times(1)).save(recipientCard);
     }
 
     @Test
-    public void testDepositCashFromATM() throws CardNotFoundException {
-        // Устанавливаем данные для теста
-        BankCard recipientCard = new BankCard();
-        recipientCard.setBalance(BigDecimal.valueOf(500));
+    void testDepositCashFromATM() throws CardNotFoundException {
+        BankCard card = new BankCard(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
-
-        when(bankCardRepository.findByCardNumber("recipientCardNumber")).thenReturn((recipientCard));
-        when(atmRepository.findAll()).thenReturn(List.of(new ATM()));
-
-        // Вызываем метод, который мы хотим протестировать
-        atmService.depositCashFromATM(
-                (recipientCard),
-                amount);
-
-        // Проверяем, что баланс получателя увеличился и транзакция была сохранена
-        verify(bankCardRepository, times(1)).save(recipientCard);
-        verify(transactionRepository, times(1)).save(any(Transactions.class));
+        List<ATM> allAtms = new ArrayList<>();
+        allAtms.add(new ATM(1L,"ATM1","null"));
+        allAtms.add(new ATM(2L,"ATM2","null"));
+        when(atmRepository.findAll()).thenReturn(allAtms);
+        atmService.depositCashFromATM(card, amount);
+        assertEquals(BigDecimal.valueOf(700), card.getBalance());
+        verify(transactionRepository, times(1)).save(any());
     }
 
     @Test
-    public void testWithdrawFromATM() throws CardNotFoundException {
-        // Устанавливаем данные для теста
-        BankCard card = new BankCard();
-        card.setBalance(BigDecimal.valueOf(1000));
+    void testWithdrawFromATM() throws CardNotFoundException {
+        BankCard card = new BankCard(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
-        List<ATM> atmList = List.of(new ATM());
+        List<ATM> allAtms = new ArrayList<>();
+        allAtms.add(new ATM(1L,"ATM1","null"));
+        when(atmRepository.findAll()).thenReturn(allAtms);
+        atmService.withdrawFromATM(card, amount);
+        assertEquals(BigDecimal.valueOf(300), card.getBalance());
+        verify(transactionRepository, times(1)).save(any());
+    }
 
-        when(bankCardRepository.findByCardNumber("cardNumber")).thenReturn((card));
-        when(atmRepository.findAll()).thenReturn(atmList);
-
-        // Вызываем метод, который мы хотим протестировать
-        atmService.withdrawFromATM((card), amount);
-
-        // Проверяем, что баланс уменьшился и транзакция была сохранена
-        verify(bankCardRepository, times(1)).save(card);
-        verify(transactionRepository, times(1)).save(any(Transactions.class));
+    @Test
+    void testCreateCard() {
+        BankCard newCard = new BankCard(1L, "1234567890123456", "1111", BigDecimal.valueOf(0));
+        when(bankCardRepository.save(any())).thenReturn(newCard);
+        BankCard createdCard = atmService.createCard();
+        assertNotNull(createdCard);
+        assertEquals("1234567890123456", createdCard.getCardNumber());
+        assertEquals("1111", createdCard.getPinNumber());
+        assertEquals(BigDecimal.valueOf(0), createdCard.getBalance());
     }
 }

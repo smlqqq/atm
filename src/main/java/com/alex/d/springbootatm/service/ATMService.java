@@ -7,6 +7,7 @@ import com.alex.d.springbootatm.model.Transactions;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,17 +19,19 @@ import java.util.Random;
 @Service
 public class ATMService {
 
-    private final TransactionRepository transactionRepository;
-    private final BankCardRepository bankCardRepository;
-    private final ATMRepository atmRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
+    @Autowired
+    private BankCardRepository bankCardRepository;
+    @Autowired
+    private ATMRepository atmRepository;
 
     private final Random random = new Random();
 
 
-    public ATMService(TransactionRepository transactionRepository, BankCardRepository bankCardRepository, ATMRepository atmRepository) {
-        this.transactionRepository = transactionRepository;
-        this.bankCardRepository = bankCardRepository;
-        this.atmRepository = atmRepository;
+    public ATMService(ATMRepository atmRepositoryMock, TransactionRepository transactionRepositoryMock) {
+        this.atmRepository = atmRepositoryMock;
+        this.transactionRepository = transactionRepositoryMock;
     }
 
     @Transactional
@@ -42,15 +45,12 @@ public class ATMService {
             transactions.setSenderCard(senderCard);
             transactions.setRecipientCard(recipientCard);
             transactionRepository.save(transactions);
-
             // Update sender's balance
             BigDecimal newSenderBalance = senderCard.getBalance().subtract(amount);
             senderCard.setBalance(newSenderBalance);
-
             // Update recipient's balance
             BigDecimal newRecipientBalance = recipientCard.getBalance().add(amount);
             recipientCard.setBalance(newRecipientBalance);
-
             // Save updated sender and recipient cards
             bankCardRepository.save(senderCard);
             bankCardRepository.save(recipientCard);
@@ -67,17 +67,12 @@ public class ATMService {
         // Increase balance
         BigDecimal newBalance = card.getBalance().add(amount);
         card.setBalance(newBalance);
-
-        List<ATM> allAtmNames = atmRepository.findAll();
-        int randomIndex = random.nextInt(allAtmNames.size());
-        ATM randomAtmName = allAtmNames.get(randomIndex);
-
-
+        // Create a new transaction
         Transactions transactions = new Transactions();
         transactions.setTransactionType("WITHDRAW_FROM_ATM");
         transactions.setAmount(amount);
         transactions.setTimestamp(LocalDateTime.now());
-        transactions.setSenderATM(randomAtmName);
+        transactions.setSenderATM(returnAtmName());
         transactions.setRecipientCard(card);
         transactionRepository.save(transactions);
     }
@@ -88,20 +83,15 @@ public class ATMService {
         if (card == null) {
             throw new CardNotFoundException("Card not found.");
         }
-
+        // Decrease balance
         BigDecimal newBalance = card.getBalance().subtract(amount);
         card.setBalance(newBalance);
-
-        List<ATM> allAtmNames = atmRepository.findAll();
-        int randomIndex = random.nextInt(allAtmNames.size());
-        ATM randomAtmName = allAtmNames.get(randomIndex);
-
-
+        // Create a new transaction
         Transactions transactions = new Transactions();
         transactions.setTransactionType("WITHDRAW_FROM_ATM");
         transactions.setAmount(amount);
         transactions.setTimestamp(LocalDateTime.now());
-        transactions.setSenderATM(randomAtmName);
+        transactions.setSenderATM(returnAtmName());
         transactions.setRecipientCard(card);
         transactionRepository.save(transactions);
     }
@@ -132,6 +122,12 @@ public class ATMService {
         return sb.toString();
     }
 
+    public ATM returnAtmName() {
+        List<ATM> allAtmNames = atmRepository.findAll();
+        int randomIndex = random.nextInt(allAtmNames.size());
+        return allAtmNames.get(randomIndex);
+    }
+
     public BigDecimal generateBalance() {
         return BigDecimal.valueOf(0);
     }
@@ -139,7 +135,7 @@ public class ATMService {
     @Transactional
     public BigDecimal checkBalance(String cardNumber) throws CardNotFoundException {
         BankCard card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card==null) {
+        if (card == null) {
             throw new CardNotFoundException("Card not found");
         }
         return card.getBalance();
@@ -150,11 +146,10 @@ public class ATMService {
         BankCard card = bankCardRepository.findByCardNumber(cardNumber);
         if (card != null) {
             bankCardRepository.deleteByCardNumber(cardNumber);
-            return card;
-        } else {
-            throw new CardNotFoundException("Card not found");
         }
+        return card;
     }
+
 
 
 }
