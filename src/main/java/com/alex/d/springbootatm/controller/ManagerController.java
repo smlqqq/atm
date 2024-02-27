@@ -58,7 +58,7 @@ public class ManagerController {
             log.info("Card with number {} was deleted", cardNumber);
             return ResponseEntity.ok().build();
         } catch (CardNotFoundException e) {
-            log.error("Failed to delete card: {}", e.getMessage());
+            log.error("Failed to delete card: {}", e.getMessage(), new CardNotFoundException("Card not found exception."));
             return ResponseEntity.notFound().build();
         }
     }

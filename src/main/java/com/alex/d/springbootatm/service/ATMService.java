@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -33,29 +32,25 @@ public class ATMService {
     }
 
     @Transactional
-    public void saveTransaction(Transactions transactions) {
-        transactionRepository.save(transactions);
-    }
-
-    @Transactional
-    public void sendTransaction(Optional<BankCard> optionalSenderCard, Optional<BankCard> optionalRecipientCard, BigDecimal amount) throws CardNotFoundException {
-        if (optionalSenderCard.isPresent() && optionalRecipientCard.isPresent()) {
-            BankCard senderCard = optionalSenderCard.get();
-            BankCard recipientCard = optionalRecipientCard.get();
-            // Create a new transactions
+    public void sendTransaction(BankCard senderCard, BankCard recipientCard, BigDecimal amount) throws CardNotFoundException {
+        if (senderCard != null && recipientCard != null) {
+            // Create a new transaction
             Transactions transactions = new Transactions();
             transactions.setTransactionType("SEND");
             transactions.setAmount(amount);
             transactions.setTimestamp(LocalDateTime.now());
             transactions.setSenderCard(senderCard);
             transactions.setRecipientCard(recipientCard);
-            saveTransaction(transactions);
+            transactionRepository.save(transactions);
+
             // Update sender's balance
             BigDecimal newSenderBalance = senderCard.getBalance().subtract(amount);
             senderCard.setBalance(newSenderBalance);
+
             // Update recipient's balance
             BigDecimal newRecipientBalance = recipientCard.getBalance().add(amount);
             recipientCard.setBalance(newRecipientBalance);
+
             // Save updated sender and recipient cards
             bankCardRepository.save(senderCard);
             bankCardRepository.save(recipientCard);
@@ -65,39 +60,49 @@ public class ATMService {
     }
 
     @Transactional
-    public void depositCashFromATM(Optional<BankCard> optionalRecipientCard, BigDecimal amount) throws CardNotFoundException {
-        BankCard recipientCard = optionalRecipientCard.orElseThrow(() -> new CardNotFoundException("Recipient card not found."));
-        // Decrease balance
-        BigDecimal newBalance = recipientCard.getBalance().add(amount);
-        recipientCard.setBalance(newBalance);
+    public void depositCashFromATM(BankCard card, BigDecimal amount) throws CardNotFoundException {
+        if (card == null) {
+            throw new CardNotFoundException("Card not found.");
+        }
+        // Increase balance
+        BigDecimal newBalance = card.getBalance().add(amount);
+        card.setBalance(newBalance);
+
         List<ATM> allAtmNames = atmRepository.findAll();
         int randomIndex = random.nextInt(allAtmNames.size());
         ATM randomAtmName = allAtmNames.get(randomIndex);
-        // Create and save transactions
+
+
         Transactions transactions = new Transactions();
-        transactions.setTransactionType("DEPOSIT_FROM_ATM");
+        transactions.setTransactionType("WITHDRAW_FROM_ATM");
         transactions.setAmount(amount);
         transactions.setTimestamp(LocalDateTime.now());
         transactions.setSenderATM(randomAtmName);
-        transactions.setRecipientCard(recipientCard);
+        transactions.setRecipientCard(card);
         transactionRepository.save(transactions);
     }
 
 
     @Transactional
-    public void withdrawFromATM(Optional<BankCard> card, BigDecimal amount) throws CardNotFoundException {
-        BankCard cardNumber = card.orElseThrow(() -> new CardNotFoundException("Card not found."));
-        BigDecimal newBalance = cardNumber.getBalance().subtract(amount);
-        cardNumber.setBalance(newBalance);
-        List<ATM> ATMName = atmRepository.findAll();
-        int randomIndex = random.nextInt(ATMName.size());
-        ATM randomNameOfATM = ATMName.get(randomIndex);
+    public void withdrawFromATM(BankCard card, BigDecimal amount) throws CardNotFoundException {
+        if (card == null) {
+            throw new CardNotFoundException("Card not found.");
+        }
+
+        BigDecimal newBalance = card.getBalance().subtract(amount);
+        card.setBalance(newBalance);
+
+        List<ATM> allAtmNames = atmRepository.findAll();
+        int randomIndex = random.nextInt(allAtmNames.size());
+        ATM randomAtmName = allAtmNames.get(randomIndex);
+
+
         Transactions transactions = new Transactions();
         transactions.setTransactionType("WITHDRAW_FROM_ATM");
         transactions.setAmount(amount);
         transactions.setTimestamp(LocalDateTime.now());
-        transactions.setSenderATM(randomNameOfATM);
-        transactions.setRecipientCard(cardNumber);
+        transactions.setSenderATM(randomAtmName);
+        transactions.setRecipientCard(card);
         transactionRepository.save(transactions);
     }
 
@@ -133,22 +138,23 @@ public class ATMService {
 
     @Transactional
     public BigDecimal checkBalance(String cardNumber) throws CardNotFoundException {
-        Optional<BankCard> card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card.isEmpty()) {
+        BankCard card = bankCardRepository.findByCardNumber(cardNumber);
+        if (card==null) {
             throw new CardNotFoundException("Card not found");
         }
-        return card.get().getBalance();
+        return card.getBalance();
     }
 
     @Transactional
-    public Optional<BankCard> deleteCardByNumber(String cardNumber) throws CardNotFoundException {
-        Optional<BankCard> cardOptional = bankCardRepository.findByCardNumber(cardNumber);
-        if (cardOptional.isPresent()) {
+    public BankCard deleteCardByNumber(String cardNumber) throws CardNotFoundException {
+        BankCard card = bankCardRepository.findByCardNumber(cardNumber);
+        if (card != null) {
             bankCardRepository.deleteByCardNumber(cardNumber);
-            return cardOptional;
+            return card;
         } else {
-            throw new CardNotFoundException("Card with number " + cardNumber + " not found");
+            throw new CardNotFoundException("Card not found");
         }
     }
+
 
 }

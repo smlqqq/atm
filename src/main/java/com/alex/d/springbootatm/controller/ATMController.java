@@ -15,7 +15,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -62,8 +61,8 @@ public class ATMController {
             @Parameter(description = "Amount to deposit", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException {
 
         try {
-            Optional<BankCard> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
-            if (recipientCard.isEmpty()) {
+            BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+            if (recipientCard==null) {
                 log.error("Card not found: {}", recipientCardNumber, new CardNotFoundException("Card not found."));
                 return ResponseEntity.badRequest().body("Card not found.");
             }
@@ -94,13 +93,13 @@ public class ATMController {
             @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) throws CardNotFoundException{
 
         try {
-            Optional<BankCard> card = bankCardRepository.findByCardNumber(cardNumber);
-            if (card.isEmpty()) {
+            BankCard card = bankCardRepository.findByCardNumber(cardNumber);
+            if (card==null) {
                 log.error("Card not found: {}", cardNumber, new CardNotFoundException("Card not found."));
                 return ResponseEntity.badRequest().body("Card not found.");
             }
 
-            BigDecimal senderBalance = card.get().getBalance();
+            BigDecimal senderBalance = card.getBalance();
             if (senderBalance.compareTo(amount) < 0) {
                 log.error("Insufficient funds on your card: {}", card, new InsufficientFundsException("Insufficient funds on your card."));
                 return ResponseEntity.badRequest().body("Insufficient funds on your card.");

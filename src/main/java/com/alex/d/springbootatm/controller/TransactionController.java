@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -52,20 +51,20 @@ public class TransactionController {
             @RequestParam("amount") BigDecimal amount
     ) throws CardNotFoundException {
         try {
-            Optional<BankCard> senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
-            Optional<BankCard> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+            BankCard senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
+            BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
 
-            if (senderCard.isEmpty()) {
+            if (senderCard == null) {
                 log.error("Sender card not found: {}", senderCardNumber, new CardNotFoundException("Sender card not found exception."));
                 return ResponseEntity.badRequest().body("Sender card not found.");
             }
 
-            if (recipientCard.isEmpty()) {
+            if (recipientCard==null) {
                 log.error("Recipient card not found: {}", recipientCardNumber, new CardNotFoundException("Recipient card not found exception."));
                 return ResponseEntity.badRequest().body("Recipient card not found.");
             }
 
-            BigDecimal senderBalance = senderCard.get().getBalance();
+            BigDecimal senderBalance = senderCard.getBalance();
             if (senderBalance.compareTo(amount) < 0) {
                 log.error("Insufficient funds on sender's card: {}", senderCardNumber, new InsufficientFundsException("Insufficient funds on sender's card."));
                 return ResponseEntity.badRequest().body("Insufficient funds on sender's card.");
