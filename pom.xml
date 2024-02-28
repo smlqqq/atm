@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.2</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>com.alex.d</groupId>
     <artifactId>spring-boot-atm</artifactId>
@@ -38,9 +38,6 @@
 <!--            <artifactId>liquibase-core</artifactId>-->
 <!--            <version>${liquibase.version}</version>-->
 <!--        </dependency>-->
-
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -98,58 +95,16 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.3.0</version>
         </dependency>
-<!--        JUNIT-->
-<!--        <dependency>-->
-<!--            <groupId>junit</groupId>-->
-<!--            <artifactId>junit</artifactId>-->
-<!--            <version>4.13.2</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-
-
     </dependencies>
 
 
 
     <build>
         <plugins>
-
-<!--            <plugin>-->
-<!--                <groupId>org.flywaydb</groupId>-->
-<!--                <artifactId>flyway-maven-plugin</artifactId>-->
-<!--                <version>6.0.0</version>-->
-<!--                <configuration>-->
-<!--                    <url>jdbc:postgresql://localhost:5432/bank_db</url>-->
-<!--                    <user>postgres</user>-->
-<!--                    <password>postgres</password>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-
-
-<!--            <plugin>-->
-<!--                <groupId>org.liquibase</groupId>-->
-<!--                <artifactId>liquibase-maven-plugin</artifactId>-->
-<!--                <version>${liquibase.version}</version>-->
-<!--                <configuration>-->
-<!--                    <propertyFile>${profile.propertyFile}</propertyFile>-->
-<!--                    <changeLogFile>${profile.changeLogFile}</changeLogFile>-->
-<!--                    <dataDir>${profile.dataDir}</dataDir>-->
-<!--                    &lt;!&ndash; log  &ndash;&gt;-->
-<!--                    <verbose>${profile.verbose}</verbose>-->
-<!--                    <logging>${profile.logging}</logging>-->
-<!--                    <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.springframework.boot</groupId>-->
-<!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--                <configuration>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
         </plugins>
     </build>
 
