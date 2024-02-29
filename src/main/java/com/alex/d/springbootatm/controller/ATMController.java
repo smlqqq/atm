@@ -38,17 +38,22 @@ public class ATMController {
             description = "Retrieve bank card details by providing the card number",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success"),
-                    @ApiResponse(responseCode = "404", description = "Card not found")
             }
     )
 
+
     @GetMapping("/balance/{cardNumber}")
-    public ResponseEntity<BigDecimal> getBalance(
-            @PathVariable Long cardNumber
-    ) throws CardNotFoundException {
-        log.info("Card: {} Balance: {}", cardNumber, atmService.checkBalance(String.valueOf(cardNumber)));
-        return ResponseEntity.ok(atmService.checkBalance(String.valueOf(cardNumber)));
+    public ResponseEntity<String> getBalance(@PathVariable String cardNumber) throws CardNotFoundException {
+        BankCard bankCard = bankCardRepository.findByCardNumber(String.valueOf(cardNumber));
+        if (bankCard == null) {
+            log.error("Card: {} not found.", cardNumber, new CardNotFoundException("Card not found."));
+            return ResponseEntity.badRequest().body("Card not found.");
+        }
+        BigDecimal balance = atmService.checkBalance(String.valueOf(cardNumber));
+        log.info("Card: {} Balance: {}", cardNumber, balance);
+        return ResponseEntity.ok(String.valueOf(balance));
     }
+
 
     @Operation(
             summary = "Deposit funds to the specified card",

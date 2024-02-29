@@ -43,13 +43,16 @@ class ATMControllerTest {
     }
 
     @Test
-    void testCardBalanceEndpoint() throws CardNotFoundException {
-        BankCard card = new BankCard(1L, "4377115590721505", "5356", BigDecimal.valueOf(300));
-        when(atmService.checkBalance(card.getCardNumber())).thenReturn(card.getBalance());
-        ResponseEntity<BigDecimal> response = atmController.getBalance(Long.valueOf(card.getCardNumber()));
+    void testGetBalance() throws CardNotFoundException {
+        String cardNum = "4377115590721505";
+        BankCard bankCard = new BankCard(1L, cardNum, "5356", BigDecimal.valueOf(1000));
+        when(bankCardRepository.findByCardNumber(cardNum)).thenReturn(bankCard);
+        when(atmService.checkBalance(cardNum)).thenReturn(BigDecimal.valueOf(1000));
+        ResponseEntity<String> response = atmController.getBalance(cardNum);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(card.getBalance(), response.getBody());
+        assertEquals("1000", response.getBody());
     }
+
 
     @Test
     void testDepositCash() throws CardNotFoundException {
