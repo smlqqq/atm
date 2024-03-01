@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "atm_transactions")
+@JsonTypeName("Transaction")
 public class Transactions {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

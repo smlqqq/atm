@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

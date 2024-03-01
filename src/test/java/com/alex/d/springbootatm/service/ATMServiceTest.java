@@ -3,7 +3,6 @@ package com.alex.d.springbootatm.service;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.ATM;
 import com.alex.d.springbootatm.model.BankCard;
-import com.alex.d.springbootatm.model.Transactions;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;

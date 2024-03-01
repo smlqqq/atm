@@ -1,15 +1,20 @@
 package com.alex.d.springbootatm.controller;
 
+import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.exception.InsufficientFundsException;
 import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.repository.BankCardRepository;
+import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.ATMService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @RestController
 @Slf4j
@@ -32,55 +38,66 @@ public class TransactionController {
         this.atmService = atmService;
     }
 
-    @Operation(
-            description = "Get endpoint for transfer",
-            summary = "Transfer funds between cards",
-            responses =
-            @ApiResponse(
-                    description = "Success",
-                    responseCode = "200"
-            )
-
-    )
-
     @PostMapping("/transfer")
-    public ResponseEntity<String> transferFunds(
+    @Operation(
+            description = "Transfer funds between cards",
+            summary = "Transfer funds between cards",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Funds successfully transferred", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = TransferResponse.class))}),
+                    @ApiResponse(responseCode = "400", description = "Bad request", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
+                    @ApiResponse(responseCode = "404", description = "Card not found", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
+                    })
+            }
+    )
+    public ResponseEntity transferFunds(
             @Parameter(description = "Sender card number", required = true) @RequestParam("senderCardNumber") String senderCardNumber,
             @Parameter(description = "Recipient card number", required = true) @RequestParam("recipientCardNumber") String recipientCardNumber,
-            @Parameter(description = "Transfer amount", required = true)
-            @RequestParam("amount") BigDecimal amount
+            @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
     ) throws CardNotFoundException {
-        try {
+
             BankCard senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
             BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
 
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            log.error("Invalid transfer amount: {}", amount);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Invalid deposit amount", "/deposit/" + recipientCardNumber);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+
             if (senderCard == null) {
-                log.error("Sender card not found: {}", senderCardNumber, new CardNotFoundException("Sender card not found exception."));
-                return ResponseEntity.badRequest().body("Sender card not found.");
+                log.error("Sender card not found: {}", senderCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Sender card not found", "/transfer");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
-            if (recipientCard==null) {
-                log.error("Recipient card not found: {}", recipientCardNumber, new CardNotFoundException("Recipient card not found exception."));
-                return ResponseEntity.badRequest().body("Recipient card not found.");
+            if (recipientCard == null) {
+                log.error("Recipient card not found: {}", recipientCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Recipient card not found", "/transfer");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
             BigDecimal senderBalance = senderCard.getBalance();
+
             if (senderBalance.compareTo(amount) < 0) {
-                log.error("Insufficient funds on sender's card: {}", senderCardNumber, new InsufficientFundsException("Insufficient funds on sender's card."));
-                return ResponseEntity.badRequest().body("Insufficient funds on sender's card.");
+                log.error("Insufficient funds on sender's card: {}", senderCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Insufficient funds on sender's card", "/transfer");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 
-            atmService.sendTransaction(senderCard, recipientCard, amount);
+            BigDecimal recipientBalance = recipientCard.getBalance();
 
+            atmService.sendTransaction(senderCard, recipientCard, amount);
             log.info("Transactions of {} from card {} to card {} was successful.",
                     amount, senderCardNumber, recipientCardNumber);
 
-            return ResponseEntity.ok("Transactions sent successfully.");
-        } catch (Exception e) {
-            log.error("Failed to send transaction: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Failed to send transaction: " + e.getMessage());
+            TransferResponse response = new TransferResponse(senderCardNumber, recipientCardNumber, amount, senderBalance.subtract(amount), recipientBalance.add(amount));
+
+            return ResponseEntity.ok(response);
         }
     }
 
-}
+
 

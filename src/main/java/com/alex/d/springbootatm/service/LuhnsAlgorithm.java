@@ -18,4 +18,12 @@ public class LuhnsAlgorithm {
         }
         return (sum * 9) % 10;
     }
+    public static int calculateChecksum(final String number) {
+        final int checksum = 10 - calculateLuhnChecksum(number) % 10;
+        return checksum % 10;
+    }
+
+    public static boolean isCorrectNumber(final String cardNumber) {
+        return calculateLuhnChecksum(cardNumber) % 10 == 0;
+    }
 }

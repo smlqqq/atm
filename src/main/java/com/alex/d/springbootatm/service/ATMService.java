@@ -116,7 +116,7 @@ public class ATMService {
         }
 
         String prefix = sb.toString();
-        int checksum = LuhnsAlgorithm.calculateLuhnChecksum(prefix);
+        int checksum = LuhnsAlgorithm.calculateChecksum(prefix);
         sb.append(checksum);
 
         return sb.toString();

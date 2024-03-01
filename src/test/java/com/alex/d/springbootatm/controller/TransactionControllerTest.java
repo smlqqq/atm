@@ -3,6 +3,7 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.repository.BankCardRepository;
+import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.ATMService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,7 @@ class TransactionControllerTest {
 
     @Test
     void testTransferFunds() throws CardNotFoundException {
+        // Arrange
         String senderCardNumber = "1234567890123456";
         String recipientCardNumber = "9876543210987654";
         BigDecimal amount = BigDecimal.valueOf(500);
@@ -39,9 +41,12 @@ class TransactionControllerTest {
         when(bankCardRepository.findByCardNumber(senderCardNumber)).thenReturn(senderCard);
         when(bankCardRepository.findByCardNumber(recipientCardNumber)).thenReturn(recipientCard);
         doNothing().when(atmService).sendTransaction(senderCard, recipientCard, amount);
-        ResponseEntity<String> response = transactionController.transferFunds(senderCardNumber, recipientCardNumber, amount);
+        ResponseEntity<TransferResponse> response = transactionController.transferFunds(senderCardNumber, recipientCardNumber, amount);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Transactions sent successfully.", response.getBody());
+        assertEquals(senderCardNumber, response.getBody().getSenderCardNumber());
+        assertEquals(recipientCardNumber, response.getBody().getRecipientCardNumber());
+        assertEquals(amount, response.getBody().getTransferred_funds());
+        assertEquals(amount, response.getBody().getRecipient_balance());
         verify(bankCardRepository, times(1)).findByCardNumber(senderCardNumber);
         verify(bankCardRepository, times(1)).findByCardNumber(recipientCardNumber);
         verify(atmService, times(1)).sendTransaction(senderCard, recipientCard, amount);
