@@ -33,8 +33,8 @@ class TransactionControllerTest {
     @Test
     void testTransferFunds() throws CardNotFoundException {
         // Arrange
-        String senderCardNumber = "1234567890123456";
-        String recipientCardNumber = "9876543210987654";
+        String senderCardNumber = "4000003813378680";
+        String recipientCardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
         BankCard senderCard = new BankCard(1L, senderCardNumber, "1111", BigDecimal.valueOf(1000));
         BankCard recipientCard = new BankCard(2L, recipientCardNumber, "2222", BigDecimal.valueOf(0));

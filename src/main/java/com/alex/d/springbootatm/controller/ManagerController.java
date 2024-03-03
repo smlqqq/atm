@@ -5,6 +5,7 @@ import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.LuhnsAlgorithm;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -50,7 +51,9 @@ public class ManagerController {
             summary = "Delete card",
             description = "Delete all details about card",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Card was deleted."),
+                    @ApiResponse(responseCode = "200", description = "Card was deleted.", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCard.class))
+                    }),
                     @ApiResponse(responseCode = "404", description = "Invalid credit card number", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
             }
@@ -67,7 +70,7 @@ public class ManagerController {
 
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.OK).body(recipientCard);
         } catch (CardNotFoundException e) {
             log.error("Failed to delete card: {}", e.getMessage());
             return ResponseEntity.notFound().build();

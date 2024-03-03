@@ -45,9 +45,7 @@ public class ATMController {
 
 
      @Operation(
-            operationId = "balanceGet",
             summary = "Get account balance",
-            tags = {"Account"},
             description = "Retrieve bank card details by providing the card number",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Account balance retrieved successfully", content = {

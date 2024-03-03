@@ -37,8 +37,8 @@ class ManagerControllerTest {
     @Test
     void testGetAllCards() {
         List<BankCard> cards = new ArrayList<>();
-        cards.add(new BankCard(1L, "4377115590721505", "5356", BigDecimal.valueOf(300)));
-        cards.add(new BankCard(2L, "4377115590721456", "3256", BigDecimal.valueOf(500)));
+        cards.add(new BankCard(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
+        cards.add(new BankCard(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
         when(bankCardRepository.findAll()).thenReturn(cards);
         ResponseEntity<List<BankCard>> response = managerController.getAllCards();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -60,7 +60,7 @@ class ManagerControllerTest {
 
     @Test
     void testCreateNewCard() {
-        BankCard newCard = new BankCard(1L, "4377115590721456", "3256", BigDecimal.valueOf(500));
+        BankCard newCard = new BankCard(1L, "4000003813378680", "3256", BigDecimal.valueOf(500));
         when(atmService.createCard()).thenReturn(newCard);
         ResponseEntity<BankCard> response = managerController.createNewCard(newCard);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());

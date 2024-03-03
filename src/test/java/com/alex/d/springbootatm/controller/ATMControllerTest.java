@@ -41,8 +41,7 @@ class ATMControllerTest {
 
     @Test
     void testGetBalance() throws CardNotFoundException {
-        // Arrange
-        String cardNumber = "4377115590721505";
+        String cardNumber = "4000007329214081";
         BankCard bankCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(bankCard);
         when(atmService.checkBalance(cardNumber)).thenReturn(BigDecimal.valueOf(1000));
@@ -55,7 +54,7 @@ class ATMControllerTest {
 
     @Test
     void testDepositCash() throws CardNotFoundException {
-        String cardNumber = "4377115590721505";
+        String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
         BankCard recipientCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(0));
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(recipientCard);
@@ -70,7 +69,7 @@ class ATMControllerTest {
 
     @Test
     void testWithdraw() throws CardNotFoundException {
-        String cardNumber = "4377115590721505";
+        String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
         BankCard card = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(card);
@@ -83,8 +82,5 @@ class ATMControllerTest {
         verify(bankCardRepository, times(1)).findByCardNumber(cardNumber);
         verify(atmService, times(1)).withdrawFromATM(card, amount);
     }
-
-
-
 
 }
