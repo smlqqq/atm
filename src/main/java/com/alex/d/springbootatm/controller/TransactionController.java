@@ -1,12 +1,12 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.exception.InsufficientFundsException;
 import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.repository.BankCardRepository;
+import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.LuhnsAlgorithm;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -58,8 +58,8 @@ public class TransactionController {
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
     ) throws CardNotFoundException {
 
-            BankCard senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
-            BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+        BankCard senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
+        BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             log.error("Invalid transfer amount: {}", amount);
@@ -67,37 +67,37 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
-            if (senderCard == null) {
-                log.error("Sender card not found: {}", senderCardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Sender card not found", "/transfer");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-            }
-
-            if (recipientCard == null) {
-                log.error("Recipient card not found: {}", recipientCardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Recipient card not found", "/transfer");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-            }
-
-            BigDecimal senderBalance = senderCard.getBalance();
-
-            if (senderBalance.compareTo(amount) < 0) {
-                log.error("Insufficient funds on sender's card: {}", senderCardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Insufficient funds on sender's card", "/transfer");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-            }
-
-            BigDecimal recipientBalance = recipientCard.getBalance();
-
-            atmService.sendTransaction(senderCard, recipientCard, amount);
-            log.info("Transactions of {} from card {} to card {} was successful.",
-                    amount, senderCardNumber, recipientCardNumber);
-
-            TransferResponse response = new TransferResponse(senderCardNumber, recipientCardNumber, amount, senderBalance.subtract(amount), recipientBalance.add(amount));
-
-            return ResponseEntity.ok(response);
+        if (!LuhnsAlgorithm.isCorrectNumber(senderCardNumber)) {
+            log.error("Sender card not found: {}", senderCardNumber);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Sender card not found", "/transfer");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+
+        if (!LuhnsAlgorithm.isCorrectNumber(recipientCardNumber)) {
+            log.error("Recipient card not found: {}", recipientCardNumber);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Recipient card not found", "/transfer");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        BigDecimal senderBalance = senderCard.getBalance();
+
+        if (senderBalance.compareTo(amount) < 0) {
+            log.error("Insufficient funds on sender's card: {}", senderCardNumber);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Insufficient funds on sender's card", "/transfer");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+
+        BigDecimal recipientBalance = recipientCard.getBalance();
+
+        atmService.sendTransaction(senderCard, recipientCard, amount);
+        log.info("Transactions of {} from card {} to card {} was successful.",
+                amount, senderCardNumber, recipientCardNumber);
+
+        TransferResponse response = new TransferResponse(senderCardNumber, recipientCardNumber, amount, senderBalance.subtract(amount), recipientBalance.add(amount));
+
+        return ResponseEntity.ok(response);
     }
+}
 
 
 

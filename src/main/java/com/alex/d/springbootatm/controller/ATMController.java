@@ -8,6 +8,7 @@ import com.alex.d.springbootatm.response.DepositResponse;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.response.WithdrawResponse;
 import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.LuhnsAlgorithm;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,7 +52,7 @@ public class ATMController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Account balance retrieved successfully", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BalanceResponse.class))}),
-                    @ApiResponse(responseCode = "404", description = "Not found", content = {
+                    @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
 
             }
@@ -63,9 +64,9 @@ public class ATMController {
 
         try {
             BankCard bankCard = bankCardRepository.findByCardNumber(cardNumber);
-            if (bankCard == null) {
+            if (!LuhnsAlgorithm.isCorrectNumber(String.valueOf(bankCard))) {
                 log.error("Invalid credit card number {}", cardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Card not found", "/balance/" + cardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Invalid credit card number.", "/balance/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
@@ -90,7 +91,7 @@ public class ATMController {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = DepositResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
-                    @ApiResponse(responseCode = "404", description = "Card not found", content = {
+                    @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
             }
     )
@@ -107,9 +108,9 @@ public class ATMController {
             }
 
             BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
-            if (recipientCard == null) {
+            if (!LuhnsAlgorithm.isCorrectNumber(String.valueOf(recipientCard))) {
                 log.error("Invalid credit card number {}", recipientCardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Card not found", "/deposit/" + recipientCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Invalid credit card number.", "/deposit/" + recipientCardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
@@ -133,7 +134,7 @@ public class ATMController {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = WithdrawResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Failed to withdraw funds", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
-                    @ApiResponse(responseCode = "404", description = "Not found", content = {
+                    @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
                     })
             }
@@ -145,9 +146,9 @@ public class ATMController {
 
         try {
             BankCard recipientCard = bankCardRepository.findByCardNumber(cardNumber);
-            if (recipientCard == null) {
+            if (!LuhnsAlgorithm.isCorrectNumber(String.valueOf(recipientCard))) {
                 log.error("Invalid credit card number {}", cardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Card not found", "/withdraw/" + cardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Invalid credit card number.", "/withdraw/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 

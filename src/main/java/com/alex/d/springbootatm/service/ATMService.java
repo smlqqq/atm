@@ -110,22 +110,14 @@ public class ATMService {
     }
 
     public String generateCreditCardNumber() {
-        StringBuilder sb = new StringBuilder("4"); // Начинаем с 4, как у Visa
-        for (int i = 1; i < 15; i++) {
+        StringBuilder sb = new StringBuilder("400000");
+        for (int i = 1; i < 10; i++) {
             sb.append((int) (Math.random() * 10));
         }
-
         String prefix = sb.toString();
         int checksum = LuhnsAlgorithm.calculateChecksum(prefix);
         sb.append(checksum);
-
         return sb.toString();
-    }
-
-    public ATM returnAtmName() {
-        List<ATM> allAtmNames = atmRepository.findAll();
-        int randomIndex = random.nextInt(allAtmNames.size());
-        return allAtmNames.get(randomIndex);
     }
 
     public BigDecimal generateBalance() {
@@ -148,6 +140,12 @@ public class ATMService {
             bankCardRepository.deleteByCardNumber(cardNumber);
         }
         return card;
+    }
+
+    public ATM returnAtmName() {
+        List<ATM> allAtmNames = atmRepository.findAll();
+        int randomIndex = random.nextInt(allAtmNames.size());
+        return allAtmNames.get(randomIndex);
     }
 
 

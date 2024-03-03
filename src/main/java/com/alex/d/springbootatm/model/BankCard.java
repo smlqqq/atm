@@ -36,6 +36,5 @@ public class BankCard {
     @Column(name = "balance")
     private BigDecimal balance;
 
-
 }
 
