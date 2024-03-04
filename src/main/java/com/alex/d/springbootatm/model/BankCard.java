@@ -1,7 +1,6 @@
 package com.alex.d.springbootatm.model;
 
 
-import com.alex.d.springbootatm.service.LuhnsAlgorithm;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -11,8 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-
-import static java.lang.String.format;
 
 @Entity
 @Getter
@@ -25,15 +22,19 @@ public class BankCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
+    @Schema(description = "id")
     private Long id;
 
     @Column(name = "card_number")
+    @Schema(description = "card number", example = "4000006819910091")
     private String cardNumber;
 
     @Column(name = "pin_number")
+    @Schema(description = "card pin code", example = "5492")
     private String pinNumber;
 
     @Column(name = "balance")
+    @Schema(description = "card balance", example = "100")
     private BigDecimal balance;
 
 }

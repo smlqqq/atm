@@ -44,27 +44,24 @@ public class ATMController {
 
 
 
-     @Operation(
-            summary = "Get account balance",
-            description = "Retrieve bank card details by providing the card number",
+    @Operation(
+            summary = "Get account balance.",
+            description = "Returns the balance for the provided card number.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Account balance retrieved successfully", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BalanceResponse.class))}),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BalanceResponse.class))
+                    }),
                     @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
-
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
+                    })
             }
     )
-
     @GetMapping("/balance/{cardNumber}")
     public ResponseEntity getBalance(@PathVariable String cardNumber) {
-
-
         try {
-            BankCard bankCard = bankCardRepository.findByCardNumber(cardNumber);
-            if (!LuhnsAlgorithm.isCorrectNumber(String.valueOf(bankCard))) {
+            if (!LuhnsAlgorithm.isCorrectNumber(cardNumber)) {
                 log.error("Invalid credit card number {}", cardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Invalid credit card number.", "/balance/" + cardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Invalid credit card number.", "/balance/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
@@ -73,12 +70,12 @@ public class ATMController {
 
             BalanceResponse response = new BalanceResponse(cardNumber, balance);
 
-
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (CardNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
+
 
 
     @Operation(
@@ -101,14 +98,14 @@ public class ATMController {
         try {
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                 log.error("Invalid deposit amount: {}", amount);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Invalid deposit amount", "/deposit/" + recipientCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid deposit amount", "/deposit/" + recipientCardNumber);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 
             BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
-            if (!LuhnsAlgorithm.isCorrectNumber(String.valueOf(recipientCard))) {
+            if (!LuhnsAlgorithm.isCorrectNumber(recipientCardNumber)) {
                 log.error("Invalid credit card number {}", recipientCardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Invalid credit card number.", "/deposit/" + recipientCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),"404", "Invalid credit card number.", "/deposit/" + recipientCardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
@@ -144,16 +141,16 @@ public class ATMController {
 
         try {
             BankCard recipientCard = bankCardRepository.findByCardNumber(cardNumber);
-            if (!LuhnsAlgorithm.isCorrectNumber(String.valueOf(recipientCard))) {
+            if (!LuhnsAlgorithm.isCorrectNumber(cardNumber)) {
                 log.error("Invalid credit card number {}", cardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Invalid credit card number.", "/withdraw/" + cardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),"404", "Invalid credit card number.", "/withdraw/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
             BigDecimal senderBalance = recipientCard.getBalance();
             if (senderBalance.compareTo(amount) < 0) {
                 log.error("Insufficient funds on your card: {}", recipientCard);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Failed to withdraw funds","/withdraw" + cardNumber + " " + amount);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Failed to withdraw funds","/withdraw" + cardNumber + " " + amount);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 

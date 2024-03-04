@@ -64,7 +64,7 @@ public class ManagerController {
             BankCard recipientCard = bankCardRepository.findByCardNumber(cardNumber);
             if (recipientCard == null) {
                 log.error("Invalid credit card number {}", cardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),404, "Card not found", "/delete/" + cardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(),"404", "Card not found", "/delete/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 

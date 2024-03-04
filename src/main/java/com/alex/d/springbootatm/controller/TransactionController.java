@@ -63,19 +63,19 @@ public class TransactionController {
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             log.error("Invalid transfer amount: {}", amount);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Invalid deposit amount", "/deposit/" + recipientCardNumber);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid deposit amount", "/deposit/" + recipientCardNumber);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
         if (!LuhnsAlgorithm.isCorrectNumber(senderCardNumber)) {
             log.error("Sender card not found: {}", senderCardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Sender card not found", "/transfer");
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Sender card not found", "/transfer");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
         if (!LuhnsAlgorithm.isCorrectNumber(recipientCardNumber)) {
             log.error("Recipient card not found: {}", recipientCardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 404, "Recipient card not found", "/transfer");
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Recipient card not found", "/transfer");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
@@ -83,7 +83,7 @@ public class TransactionController {
 
         if (senderBalance.compareTo(amount) < 0) {
             log.error("Insufficient funds on sender's card: {}", senderCardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), 400, "Insufficient funds on sender's card", "/transfer");
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Insufficient funds on sender's card", "/transfer");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
