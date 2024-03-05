@@ -98,7 +98,7 @@ public class ATMController {
         try {
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                 log.error("Invalid deposit amount: {}", amount);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid deposit amount", "/deposit/" + recipientCardNumber);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid deposit amount", "/deposit/" + amount);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 
