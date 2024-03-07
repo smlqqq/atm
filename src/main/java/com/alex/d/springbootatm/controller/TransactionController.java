@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
@@ -56,7 +55,7 @@ public class TransactionController {
             @Parameter(description = "Sender card number", required = true) @RequestParam("senderCardNumber") String senderCardNumber,
             @Parameter(description = "Recipient card number", required = true) @RequestParam("recipientCardNumber") String recipientCardNumber,
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
-    ) throws CardNotFoundException {
+    ){
 
         BankCardModel senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
         BankCardModel recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);

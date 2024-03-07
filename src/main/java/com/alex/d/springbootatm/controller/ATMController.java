@@ -135,7 +135,7 @@ public class ATMController {
 
         BigDecimal recipientBalance = recipientCard.getBalance();
         if (recipientBalance.compareTo(amount) <= 0) {
-            log.error("Insufficient funds on your card: {}", recipientCard);
+            log.error("Insufficient funds on your card: {}", recipientCard.getCardNumber());
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Failed to withdraw funds. " + "balance " + recipientBalance, "/withdraw/" + cardNumber);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
