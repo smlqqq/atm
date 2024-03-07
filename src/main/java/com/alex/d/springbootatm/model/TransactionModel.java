@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "atm_transactions")
 @JsonTypeName("Transaction")
-public class Transactions {
+public class TransactionModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -31,15 +31,15 @@ public class Transactions {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sender", referencedColumnName = "card_number")
-    private BankCard senderCard;
+    private BankCardModel senderCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "recipient", referencedColumnName = "card_number")
-    private BankCard recipientCard;
+    private BankCardModel recipientCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "atm_name", referencedColumnName = "name")
-    private ATM senderATM;
+    private ATMModel senderATMModel;
 
 
 }

@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Table(name = "atm_accounts")
 @JsonTypeName("Bank card")
-public class BankCard {
+public class BankCardModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

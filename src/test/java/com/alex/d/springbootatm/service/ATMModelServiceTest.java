@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.service;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.ATM;
-import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.model.ATMModel;
+import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
-public class ATMServiceTest {
+public class ATMModelServiceTest {
 
     @Mock
     private TransactionRepository transactionRepository;
@@ -40,10 +40,10 @@ public class ATMServiceTest {
     @Test
     public void testCheckBalance() throws CardNotFoundException {
         String cardNumber = "1234567890123456";
-        BankCard bankCard = new BankCard();
-        bankCard.setCardNumber(cardNumber);
-        bankCard.setBalance(BigDecimal.valueOf(1000));
-        when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn((bankCard));
+        BankCardModel bankCardModel = new BankCardModel();
+        bankCardModel.setCardNumber(cardNumber);
+        bankCardModel.setBalance(BigDecimal.valueOf(1000));
+        when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn((bankCardModel));
         BigDecimal balance = atmService.checkBalance(cardNumber);
         assertEquals(BigDecimal.valueOf(1000), balance);
     }
@@ -51,18 +51,18 @@ public class ATMServiceTest {
     @Test
     public void testDeleteCardByNumber() throws CardNotFoundException {
         String cardNumber = "1234567890123456";
-        BankCard bankCard = new BankCard();
-        bankCard.setCardNumber(cardNumber);
-        when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn((bankCard));
-        BankCard deletedCard = atmService.deleteCardByNumber(cardNumber);
-        assertEquals((bankCard), deletedCard);
+        BankCardModel bankCardModel = new BankCardModel();
+        bankCardModel.setCardNumber(cardNumber);
+        when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn((bankCardModel));
+        BankCardModel deletedCard = atmService.deleteCardByNumber(cardNumber);
+        assertEquals((bankCardModel), deletedCard);
     }
 
     @Test
     public void testSendTransaction() throws CardNotFoundException {
-        BankCard senderCard = new BankCard();
+        BankCardModel senderCard = new BankCardModel();
         senderCard.setBalance(BigDecimal.valueOf(1000));
-        BankCard recipientCard = new BankCard();
+        BankCardModel recipientCard = new BankCardModel();
         recipientCard.setBalance(BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
         atmService.sendTransaction((senderCard), (recipientCard), amount);
@@ -72,12 +72,12 @@ public class ATMServiceTest {
 
     @Test
     void testDepositCashFromATM() throws CardNotFoundException {
-        BankCard card = new BankCard(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
+        BankCardModel card = new BankCardModel(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
-        List<ATM> allAtms = new ArrayList<>();
-        allAtms.add(new ATM(1L,"ATM1","null"));
-        allAtms.add(new ATM(2L,"ATM2","null"));
-        when(atmRepository.findAll()).thenReturn(allAtms);
+        List<ATMModel> allATMModels = new ArrayList<>();
+        allATMModels.add(new ATMModel(1L,"ATM1","null"));
+        allATMModels.add(new ATMModel(2L,"ATM2","null"));
+        when(atmRepository.findAll()).thenReturn(allATMModels);
         atmService.depositCashFromATM(card, amount);
         assertEquals(BigDecimal.valueOf(700), card.getBalance());
         verify(transactionRepository, times(1)).save(any());
@@ -85,11 +85,11 @@ public class ATMServiceTest {
 
     @Test
     void testWithdrawFromATM() throws CardNotFoundException {
-        BankCard card = new BankCard(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
+        BankCardModel card = new BankCardModel(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
-        List<ATM> allAtms = new ArrayList<>();
-        allAtms.add(new ATM(1L,"ATM1","null"));
-        when(atmRepository.findAll()).thenReturn(allAtms);
+        List<ATMModel> allATMModels = new ArrayList<>();
+        allATMModels.add(new ATMModel(1L,"ATM1","null"));
+        when(atmRepository.findAll()).thenReturn(allATMModels);
         atmService.withdrawFromATM(card, amount);
         assertEquals(BigDecimal.valueOf(300), card.getBalance());
         verify(transactionRepository, times(1)).save(any());
@@ -97,9 +97,9 @@ public class ATMServiceTest {
 
     @Test
     void testCreateCard() {
-        BankCard newCard = new BankCard(1L, "1234567890123456", "1111", BigDecimal.valueOf(0));
+        BankCardModel newCard = new BankCardModel(1L, "1234567890123456", "1111", BigDecimal.valueOf(0));
         when(bankCardRepository.save(any())).thenReturn(newCard);
-        BankCard createdCard = atmService.createCard();
+        BankCardModel createdCard = atmService.createCard();
         assertNotNull(createdCard);
         assertEquals("1234567890123456", createdCard.getCardNumber());
         assertEquals("1111", createdCard.getPinNumber());

@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.service.ATMService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,11 +36,11 @@ class ManagerControllerTest {
 
     @Test
     void testGetAllCards() {
-        List<BankCard> cards = new ArrayList<>();
-        cards.add(new BankCard(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
-        cards.add(new BankCard(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
+        List<BankCardModel> cards = new ArrayList<>();
+        cards.add(new BankCardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
+        cards.add(new BankCardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
         when(bankCardRepository.findAll()).thenReturn(cards);
-        ResponseEntity<List<BankCard>> response = managerController.getAllCards();
+        ResponseEntity<List<BankCardModel>> response = managerController.getAllCards();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(cards, response.getBody());
     }
@@ -60,9 +60,9 @@ class ManagerControllerTest {
 
     @Test
     void testCreateNewCard() {
-        BankCard newCard = new BankCard(1L, "4000003813378680", "3256", BigDecimal.valueOf(500));
+        BankCardModel newCard = new BankCardModel(1L, "4000003813378680", "3256", BigDecimal.valueOf(500));
         when(atmService.createCard()).thenReturn(newCard);
-        ResponseEntity<BankCard> response = managerController.createNewCard(newCard);
+        ResponseEntity<BankCardModel> response = managerController.createNewCard(newCard);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(newCard, response.getBody());
     }
