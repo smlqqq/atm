@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.TransferResponse;
@@ -32,7 +31,7 @@ class TransactionControllerTest {
     private TransactionController transactionController;
 
     @Test
-    void testTransferFunds() throws CardNotFoundException {
+    void testTransferFunds(){
         // Arrange
         String senderCardNumber = "4000003813378680";
         String recipientCardNumber = "4000007329214081";

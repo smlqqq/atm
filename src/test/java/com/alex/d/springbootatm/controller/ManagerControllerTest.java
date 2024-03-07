@@ -3,7 +3,6 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.service.ATMService;
-import com.alex.d.springbootatm.response.ErrorResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 class ManagerControllerTest {

@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.BalanceResponse;

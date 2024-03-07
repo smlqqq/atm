@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.service;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.ATMModel;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.ATMRepository;
@@ -39,7 +38,7 @@ public class ATMModelServiceTest {
     private ATMService atmService;
 
     @Test
-    public void testCheckBalance() throws CardNotFoundException {
+    public void testCheckBalance() {
         String cardNumber = "1234567890123456";
         BankCardModel bankCardModel = new BankCardModel();
         bankCardModel.setCardNumber(cardNumber);

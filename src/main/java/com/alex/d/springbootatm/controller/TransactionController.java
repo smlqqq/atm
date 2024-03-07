@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
@@ -14,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,13 +31,12 @@ import java.util.Optional;
 @Tag(name = "Transactions")
 public class TransactionController {
 
-    private final BankCardRepository bankCardRepository;
-    private final ATMService atmService;
+    @Autowired
+    private  BankCardRepository bankCardRepository;
+    @Autowired
+    private  ATMService atmService;
 
-    public TransactionController(BankCardRepository bankCardRepository, ATMService atmService) {
-        this.bankCardRepository = bankCardRepository;
-        this.atmService = atmService;
-    }
+
 
     @PostMapping("/transfer")
     @Operation(
@@ -57,7 +56,7 @@ public class TransactionController {
             @Parameter(description = "Sender card number", required = true) @RequestParam("senderCardNumber") String senderCardNumber,
             @Parameter(description = "Recipient card number", required = true) @RequestParam("recipientCardNumber") String recipientCardNumber,
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
-    ) throws CardNotFoundException {
+    ) {
 
         Optional<BankCardModel> senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
         Optional<BankCardModel> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
