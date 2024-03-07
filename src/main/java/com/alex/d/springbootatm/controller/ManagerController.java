@@ -60,21 +60,17 @@ public class ManagerController {
     )
     @DeleteMapping("/delete/{cardNumber}")
     public ResponseEntity deleteCard(@PathVariable("cardNumber") String cardNumber) {
-        try {
+
             BankCardModel recipientCard = bankCardRepository.findByCardNumber(cardNumber);
             if (recipientCard == null) {
                 log.error("Invalid credit card number {}", cardNumber);
                 ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
-
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
             return ResponseEntity.status(HttpStatus.OK).body(recipientCard);
-        } catch (CardNotFoundException e) {
-            log.error("Failed to delete card: {}", e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+
     }
 
     @Operation(
@@ -92,7 +88,6 @@ public class ManagerController {
         log.info("Creating new card: {}", card);
         BankCardModel createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
-//        return new ResponseEntity<>(createdCard, HttpStatus.CREATED);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
     }
 
