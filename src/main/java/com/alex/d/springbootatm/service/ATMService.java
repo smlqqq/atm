@@ -27,7 +27,7 @@ public class ATMService {
     private final Random random = new Random();
 
 
-    @Transactional
+
     public void sendTransaction(BankCardModel senderCard, BankCardModel recipientCard, BigDecimal amount){
             // Create a new transaction
             TransactionModel transactionModel = new TransactionModel();
@@ -49,7 +49,7 @@ public class ATMService {
 
     }
 
-    @Transactional
+
     public void depositCashFromATM(BankCardModel card, BigDecimal amount){
             // Increase balance
             BigDecimal newBalance = card.getBalance().add(amount);
@@ -65,7 +65,7 @@ public class ATMService {
 
     }
 
-    @Transactional
+
     public void withdrawFromATM(BankCardModel card, BigDecimal amount){
             // Decrease balance
             BigDecimal newBalance = card.getBalance().subtract(amount);
@@ -109,15 +109,16 @@ public class ATMService {
         return BigDecimal.valueOf(0);
     }
 
-    @Transactional
+
     public BigDecimal checkBalance(String cardNumber) {
         BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
         return card.getBalance();
     }
 
-    @Transactional
+
     public BankCardModel deleteCardByNumber(String cardNumber){
         BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
+        bankCardRepository.delete(card);
         return card;
     }
 

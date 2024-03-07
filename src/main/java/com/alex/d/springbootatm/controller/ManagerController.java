@@ -1,9 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
-import com.alex.d.springbootatm.response.BalanceResponse;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +34,7 @@ public class ManagerController {
             description = "Retrieve details of all bank cards",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content (mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))
                     })
             }
     )
@@ -61,16 +59,15 @@ public class ManagerController {
     @DeleteMapping("/delete/{cardNumber}")
     public ResponseEntity deleteCard(@PathVariable("cardNumber") String cardNumber) {
 
-            BankCardModel recipientCard = bankCardRepository.findByCardNumber(cardNumber);
-            if (recipientCard == null) {
-                log.error("Invalid credit card number {}", cardNumber);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-            }
+        BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
+        if (card != null) {
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
-            return ResponseEntity.status(HttpStatus.OK).body(recipientCard);
-
+            return ResponseEntity.status(HttpStatus.OK).body(card);
+        }
+        log.error("Invalid credit card number {}", cardNumber);
+        ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @Operation(
@@ -85,7 +82,6 @@ public class ManagerController {
     )
     @PostMapping("/card")
     public ResponseEntity createNewCard(@RequestBody BankCardModel card) {
-        log.info("Creating new card: {}", card);
         BankCardModel createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);

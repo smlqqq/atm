@@ -10,8 +10,4 @@ import org.springframework.stereotype.Repository;
 public interface BankCardRepository extends JpaRepository<BankCardModel, Long> {
 
     BankCardModel findByCardNumber(String cardNum);
-
-
-//    BankCard deleteByCardNumber(String cardNumber);
-    void deleteByCardNumber(String cardNumber);
 }
