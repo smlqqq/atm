@@ -56,20 +56,21 @@ public class ATMService {
 
     @Transactional
     public void depositCashFromATM(BankCardModel card, BigDecimal amount) throws CardNotFoundException {
-        if (card == null) {
+        if (card != null) {
+            // Increase balance
+            BigDecimal newBalance = card.getBalance().add(amount);
+            card.setBalance(newBalance);
+            // Create a new transaction
+            TransactionModel transactionModel = new TransactionModel();
+            transactionModel.setTransactionType("DEPOSIT_FROM_ATM");
+            transactionModel.setAmount(amount);
+            transactionModel.setTimestamp(LocalDateTime.now());
+            transactionModel.setSenderATMModel(returnAtmName());
+            transactionModel.setRecipientCard(card);
+            transactionRepository.save(transactionModel);
+        } else {
             throw new CardNotFoundException("Card not found.");
         }
-        // Increase balance
-        BigDecimal newBalance = card.getBalance().add(amount);
-        card.setBalance(newBalance);
-        // Create a new transaction
-        TransactionModel transactionModel = new TransactionModel();
-        transactionModel.setTransactionType("DEPOSIT_FROM_ATM");
-        transactionModel.setAmount(amount);
-        transactionModel.setTimestamp(LocalDateTime.now());
-        transactionModel.setSenderATMModel(returnAtmName());
-        transactionModel.setRecipientCard(card);
-        transactionRepository.save(transactionModel);
     }
 
 
@@ -106,9 +107,9 @@ public class ATMService {
     }
 
     public String generateCreditCardNumber() {
-        StringBuilder sb = new StringBuilder("4");
-        for (int i = 1; i < 15; i++) {
-            sb.append((int) (Math.random() * 15));
+        StringBuilder sb = new StringBuilder("400000");
+        for (int i = 1; i < 10; i++) {
+            sb.append((int) (Math.random() * 10));
         }
         String prefix = sb.toString();
         int checksum = LuhnsAlgorithm.calculateChecksum(prefix);
