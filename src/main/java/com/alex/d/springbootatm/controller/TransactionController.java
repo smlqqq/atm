@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -58,8 +59,8 @@ public class TransactionController {
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
     ) throws CardNotFoundException {
 
-        BankCardModel senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
-        BankCardModel recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+        Optional<BankCardModel> senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
+        Optional<BankCardModel> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             log.error("Invalid transfer amount: {}", amount);
@@ -79,7 +80,7 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
-        BigDecimal senderBalance = senderCard.getBalance();
+        BigDecimal senderBalance = senderCard.get().getBalance();
 
         if (senderBalance.compareTo(amount) < 0) {
             log.error("Insufficient funds on sender's card: {}", senderBalance);
@@ -87,7 +88,7 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
-        BigDecimal recipientBalance = recipientCard.getBalance();
+        BigDecimal recipientBalance = recipientCard.get().getBalance();
 
         atmService.sendTransaction(senderCard, recipientCard, amount);
         log.info("Transactions of {} from card {} to card {} was successful.",

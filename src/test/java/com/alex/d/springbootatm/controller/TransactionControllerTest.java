@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -38,9 +39,9 @@ class TransactionControllerTest {
         BigDecimal amount = BigDecimal.valueOf(500);
         BankCardModel senderCard = new BankCardModel(1L, senderCardNumber, "1111", BigDecimal.valueOf(1000));
         BankCardModel recipientCard = new BankCardModel(2L, recipientCardNumber, "2222", BigDecimal.valueOf(0));
-        when(bankCardRepository.findByCardNumber(senderCardNumber)).thenReturn(senderCard);
-        when(bankCardRepository.findByCardNumber(recipientCardNumber)).thenReturn(recipientCard);
-        doNothing().when(atmService).sendTransaction(senderCard, recipientCard, amount);
+        when(bankCardRepository.findByCardNumber(senderCardNumber)).thenReturn(Optional.of(senderCard));
+        when(bankCardRepository.findByCardNumber(recipientCardNumber)).thenReturn(Optional.of(recipientCard));
+        doNothing().when(atmService).sendTransaction(Optional.of(senderCard), Optional.of(recipientCard), amount);
         ResponseEntity<TransferResponse> response = transactionController.transferFunds(senderCardNumber, recipientCardNumber, amount);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(senderCardNumber, response.getBody().getSenderCardNumber());
@@ -49,6 +50,6 @@ class TransactionControllerTest {
         assertEquals(amount, response.getBody().getRecipient_balance());
         verify(bankCardRepository, times(1)).findByCardNumber(senderCardNumber);
         verify(bankCardRepository, times(1)).findByCardNumber(recipientCardNumber);
-        verify(atmService, times(1)).sendTransaction(senderCard, recipientCard, amount);
+        verify(atmService, times(1)).sendTransaction(Optional.of(senderCard), Optional.of(recipientCard), amount);
     }
 }

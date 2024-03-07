@@ -4,6 +4,7 @@ import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.LuhnsAlgorithm;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -50,8 +52,9 @@ public class ManagerController {
             description = "Delete all details about card",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))
-                    }),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))}),
+                    @ApiResponse(responseCode = "400", description = "Bad request", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
                     @ApiResponse(responseCode = "404", description = "Not found", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
             }
@@ -59,12 +62,20 @@ public class ManagerController {
     @DeleteMapping("/delete/{cardNumber}")
     public ResponseEntity deleteCard(@PathVariable("cardNumber") String cardNumber) {
 
-        BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card != null) {
+        Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
+
+        if (!LuhnsAlgorithm.isCorrectNumber(cardNumber)) {
+            log.error("Invalid credit card number {}", cardNumber);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid credit card number.", "/withdraw/" + cardNumber);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+
+        if (card.isPresent()) {
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
             return ResponseEntity.status(HttpStatus.OK).body(card);
         }
+
         log.error("Invalid credit card number {}", cardNumber);
         ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -80,8 +91,9 @@ public class ManagerController {
             }
 
     )
+
     @PostMapping("/card")
-    public ResponseEntity createNewCard(@RequestBody BankCardModel card) {
+    public ResponseEntity createNewCard() {
         BankCardModel createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
