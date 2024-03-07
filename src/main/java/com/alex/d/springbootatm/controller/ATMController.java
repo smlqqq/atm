@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.BalanceResponse;
 import com.alex.d.springbootatm.response.DepositResponse;
@@ -102,7 +102,7 @@ public class ATMController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 
-            BankCard recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+            BankCardModel recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
             if (!LuhnsAlgorithm.isCorrectNumber(recipientCardNumber)) {
                 log.error("Invalid credit card number {}", recipientCardNumber);
                 ErrorResponse errorResponse = new ErrorResponse(Instant.now(),"404", "Invalid credit card number.", "/deposit/" + recipientCardNumber);
@@ -140,7 +140,7 @@ public class ATMController {
             @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) {
 
         try {
-            BankCard recipientCard = bankCardRepository.findByCardNumber(cardNumber);
+            BankCardModel recipientCard = bankCardRepository.findByCardNumber(cardNumber);
             if (!LuhnsAlgorithm.isCorrectNumber(cardNumber)) {
                 log.error("Invalid credit card number {}", cardNumber);
                 ErrorResponse errorResponse = new ErrorResponse(Instant.now(),"404", "Invalid credit card number.", "/withdraw/" + cardNumber);

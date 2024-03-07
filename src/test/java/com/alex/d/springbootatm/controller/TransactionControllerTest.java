@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.ATMService;
@@ -36,8 +36,8 @@ class TransactionControllerTest {
         String senderCardNumber = "4000003813378680";
         String recipientCardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
-        BankCard senderCard = new BankCard(1L, senderCardNumber, "1111", BigDecimal.valueOf(1000));
-        BankCard recipientCard = new BankCard(2L, recipientCardNumber, "2222", BigDecimal.valueOf(0));
+        BankCardModel senderCard = new BankCardModel(1L, senderCardNumber, "1111", BigDecimal.valueOf(1000));
+        BankCardModel recipientCard = new BankCardModel(2L, recipientCardNumber, "2222", BigDecimal.valueOf(0));
         when(bankCardRepository.findByCardNumber(senderCardNumber)).thenReturn(senderCard);
         when(bankCardRepository.findByCardNumber(recipientCardNumber)).thenReturn(recipientCard);
         doNothing().when(atmService).sendTransaction(senderCard, recipientCard, amount);

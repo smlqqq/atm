@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.BalanceResponse;
 import com.alex.d.springbootatm.response.DepositResponse;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-class ATMControllerTest {
+class ATMModelControllerTest {
 
 
     @Mock
@@ -42,8 +42,8 @@ class ATMControllerTest {
     @Test
     void testGetBalance() throws CardNotFoundException {
         String cardNumber = "4000007329214081";
-        BankCard bankCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
-        when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(bankCard);
+        BankCardModel bankCardModel = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
+        when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(bankCardModel);
         when(atmService.checkBalance(cardNumber)).thenReturn(BigDecimal.valueOf(1000));
         ResponseEntity<BalanceResponse> response = atmController.getBalance(cardNumber);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -56,7 +56,7 @@ class ATMControllerTest {
     void testDepositCash() throws CardNotFoundException {
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
-        BankCard recipientCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(0));
+        BankCardModel recipientCard = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(0));
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(recipientCard);
         ResponseEntity<DepositResponse> response = atmController.depositCash(cardNumber, amount);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -71,7 +71,7 @@ class ATMControllerTest {
     void testWithdraw() throws CardNotFoundException {
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
-        BankCard card = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
+        BankCardModel card = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(card);
         ResponseEntity<WithdrawResponse> response = atmController.withdraw(cardNumber, amount);
         assertEquals(HttpStatus.OK, response.getStatusCode());
