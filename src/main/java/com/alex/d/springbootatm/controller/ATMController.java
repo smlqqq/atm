@@ -48,10 +48,10 @@ public class ATMController {
             summary = "Get account balance.",
             description = "Returns the balance for the provided card number.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Account balance retrieved successfully", content = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BalanceResponse.class))
                     }),
-                    @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
+                    @ApiResponse(responseCode = "404", description = "Not found", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
                     })
             }
@@ -82,11 +82,11 @@ public class ATMController {
             summary = "Deposit funds to the specified card",
             description = "Deposit funds to the specified card using ATM and amount",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Funds deposited successfully", content = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = DepositResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
-                    @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
+                    @ApiResponse(responseCode = "404", description = "Not found", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
             }
     )
@@ -123,16 +123,16 @@ public class ATMController {
 
     @Operation(
             summary = "Withdraw funds from ATM",
-            description = "Withdraw funds from the specified card using the provided card number and amount",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Funds successfully withdrawn", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = WithdrawResponse.class))}),
-                    @ApiResponse(responseCode = "400", description = "Failed to withdraw funds", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
-                    @ApiResponse(responseCode = "404", description = "Invalid credit card number.", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
-                    })
-            }
+            description = "Withdraw funds from the specified card using the provided card number and amount"
+//            responses = {
+//                    @ApiResponse(responseCode = "200", description = "Success", content = {
+//                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = WithdrawResponse.class))}),
+//                    @ApiResponse(responseCode = "400", description = "Bad request", content = {
+//                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
+//                    @ApiResponse(responseCode = "404", description = "Not found", content = {
+//                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
+//                    })
+//            }
     )
     @PostMapping("/withdraw")
     public ResponseEntity withdraw(
@@ -147,10 +147,10 @@ public class ATMController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
 
-            BigDecimal senderBalance = recipientCard.getBalance();
-            if (senderBalance.compareTo(amount) < 0) {
+            BigDecimal recipientBalance = recipientCard.getBalance();
+            if (recipientBalance.compareTo(amount) <= 0) {
                 log.error("Insufficient funds on your card: {}", recipientCard);
-                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Failed to withdraw funds","/withdraw" + cardNumber + " " + amount);
+                ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Failed to withdraw funds. " + "balance " + recipientBalance,"/withdraw/" + cardNumber);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 
@@ -158,7 +158,7 @@ public class ATMController {
 
             log.info("Withdrawal of {} from card {} was successful.", amount, cardNumber);
 
-            WithdrawResponse response = new WithdrawResponse(cardNumber, amount.toString(), senderBalance.subtract(amount));
+            WithdrawResponse response = new WithdrawResponse(cardNumber, amount.toString(), recipientBalance.subtract(amount));
             return ResponseEntity.ok(response);
 
         } catch (CardNotFoundException e) {

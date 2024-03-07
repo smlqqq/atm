@@ -43,11 +43,11 @@ public class TransactionController {
             description = "Transfer funds between cards",
             summary = "Transfer funds between cards",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Funds successfully transferred", content = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = TransferResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
-                    @ApiResponse(responseCode = "404", description = "Card not found", content = {
+                    @ApiResponse(responseCode = "404", description = "Not found", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))
                     })
             }
