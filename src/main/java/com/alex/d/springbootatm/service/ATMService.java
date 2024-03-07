@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.service;
 
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.ATMModel;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.model.TransactionModel;
@@ -25,13 +24,11 @@ public class ATMService {
     private BankCardRepository bankCardRepository;
     @Autowired
     private ATMRepository atmRepository;
-
     private final Random random = new Random();
 
 
     @Transactional
-    public void sendTransaction(BankCardModel senderCard, BankCardModel recipientCard, BigDecimal amount) throws CardNotFoundException {
-        if (senderCard != null && recipientCard != null) {
+    public void sendTransaction(BankCardModel senderCard, BankCardModel recipientCard, BigDecimal amount){
             // Create a new transaction
             TransactionModel transactionModel = new TransactionModel();
             transactionModel.setTransactionType("SEND");
@@ -49,14 +46,11 @@ public class ATMService {
             // Save updated sender and recipient cards
             bankCardRepository.save(senderCard);
             bankCardRepository.save(recipientCard);
-        } else {
-            throw new CardNotFoundException("Sender card or recipient card not found");
-        }
+
     }
 
     @Transactional
-    public void depositCashFromATM(BankCardModel card, BigDecimal amount) throws CardNotFoundException {
-        if (card != null) {
+    public void depositCashFromATM(BankCardModel card, BigDecimal amount){
             // Increase balance
             BigDecimal newBalance = card.getBalance().add(amount);
             card.setBalance(newBalance);
@@ -68,15 +62,11 @@ public class ATMService {
             transactionModel.setSenderATMModel(returnAtmName());
             transactionModel.setRecipientCard(card);
             transactionRepository.save(transactionModel);
-        } else {
-            throw new CardNotFoundException("Card not found.");
-        }
+
     }
 
-
     @Transactional
-    public void withdrawFromATM(BankCardModel card, BigDecimal amount) throws CardNotFoundException {
-        if (card != null) {
+    public void withdrawFromATM(BankCardModel card, BigDecimal amount){
             // Decrease balance
             BigDecimal newBalance = card.getBalance().subtract(amount);
             card.setBalance(newBalance);
@@ -88,9 +78,7 @@ public class ATMService {
             transactionModel.setSenderATMModel(returnAtmName());
             transactionModel.setRecipientCard(card);
             transactionRepository.save(transactionModel);
-        }else {
-            throw new CardNotFoundException("Card not found.");
-        }
+
     }
 
     public BankCardModel createCard() {
@@ -122,20 +110,14 @@ public class ATMService {
     }
 
     @Transactional
-    public BigDecimal checkBalance(String cardNumber) throws CardNotFoundException {
+    public BigDecimal checkBalance(String cardNumber) {
         BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card == null) {
-            throw new CardNotFoundException("Card not found");
-        }
         return card.getBalance();
     }
 
     @Transactional
-    public BankCardModel deleteCardByNumber(String cardNumber) throws CardNotFoundException {
+    public BankCardModel deleteCardByNumber(String cardNumber){
         BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card != null) {
-            bankCardRepository.deleteByCardNumber(cardNumber);
-        }
         return card;
     }
 
@@ -144,7 +126,5 @@ public class ATMService {
         int randomIndex = random.nextInt(allATMModelNames.size());
         return allATMModelNames.get(randomIndex);
     }
-
-
 
 }
