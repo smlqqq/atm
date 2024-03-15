@@ -12,7 +12,7 @@ A RESTful API created using Spring Boot. This project provides basic functionali
     - Flyway Migration
     - Springdoc OpenAPI (Swagger UI)
     - Lombok
-    - SLF4J and Logback for logging
+    - SLF4J and Log4j for logging
 
 ## Dependencies
 
@@ -27,7 +27,6 @@ A RESTful API created using Spring Boot. This project provides basic functionali
    - SLF4J API: Simple Logging Facade for Java.
    - Log4j Over SLF4J: Redirects SLF4J logging to Log4j.
    - JCL Over SLF4J: Redirects Jakarta Commons Logging (JCL) to SLF4J.
-   - Logback Classic: Logging framework for Java applications.
    - Springdoc OpenAPI Starter WebMVC UI: Integrates OpenAPI (formerly Swagger UI) with Spring Boot for API documentation.
 
 ## Setup and Installation

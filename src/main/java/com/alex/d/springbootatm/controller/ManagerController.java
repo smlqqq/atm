@@ -5,6 +5,7 @@ import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
 import com.alex.d.springbootatm.service.LuhnsAlgorithm;
+import com.alex.d.springbootatm.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,10 +13,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +36,8 @@ public class ManagerController {
     private BankCardRepository bankCardRepository;
     @Autowired
     private ATMService atmService;
+    @Autowired
+    private ReportService reportService;
 
 
     @Operation(
@@ -98,6 +106,32 @@ public class ManagerController {
         BankCardModel createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
+    }
+
+
+    @Operation(
+            summary = "Download",
+            description = "Download all data.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = {
+                            @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}),
+                    @ApiResponse(responseCode = "404", description = "Not Found", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
+            }
+    )
+    @GetMapping("/download")
+    public ResponseEntity downloadFile() {
+        reportService.generateClientReport();
+        File file = new File("report.xlsx");
+        ErrorResponse error = new ErrorResponse();
+        if(!file.exists()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+        Resource resource = new FileSystemResource(file);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
+                .body(resource);
     }
 
 

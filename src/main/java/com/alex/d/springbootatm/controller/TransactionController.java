@@ -90,8 +90,8 @@ public class TransactionController {
         BigDecimal recipientBalance = recipientCard.get().getBalance();
 
         atmService.sendTransaction(senderCard, recipientCard, amount);
-        log.info("Transactions of {} from card {} to card {} was successful.",
-                amount, senderCardNumber, recipientCardNumber);
+        log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
+
 
         TransferResponse response = new TransferResponse(senderCardNumber, recipientCardNumber, amount, senderBalance.subtract(amount), recipientBalance.add(amount));
 
