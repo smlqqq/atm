@@ -14,11 +14,13 @@ import org.springframework.http.ResponseEntity;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 class ManagerControllerTest {
+
 
     @Mock
     BankCardRepository bankCardRepository;
@@ -31,7 +33,7 @@ class ManagerControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -45,24 +47,21 @@ class ManagerControllerTest {
         assertEquals(cards, response.getBody());
     }
 
-//    @Test
-//    void testDeleteCard() throws CardNotFoundException {
-//        // Arrange
-//        String cardNumber = "4377115590721505";
-//        BankCard bankCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(300));
-//        when(atmService.deleteCardByNumber(cardNumber)).thenReturn(null);
-//        ResponseEntity response = managerController.deleteCard(cardNumber);
-//        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-//        ErrorResponse errorResponse = (ErrorResponse) response.getBody();
-//        assertNotNull(errorResponse);
-//        assertEquals("Card not found", errorResponse.getError());
-//    }
+    @Test
+    void testDeleteCard() {
+        String cardNumber = "4000007329214081";
+        BankCardModel bankCard = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
+        when(atmService.deleteCardByNumber(cardNumber)).thenReturn(Optional.of(bankCard));
+        ResponseEntity<BankCardModel> response = managerController.deleteCard(cardNumber);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+
+    }
 
     @Test
     void testCreateNewCard() {
         BankCardModel newCard = new BankCardModel(1L, "4000003813378680", "3256", BigDecimal.valueOf(500));
         when(atmService.createCard()).thenReturn(newCard);
-        ResponseEntity<BankCardModel> response = managerController.createNewCard(newCard);
+        ResponseEntity<BankCardModel> response = managerController.createNewCard();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(newCard, response.getBody());
     }

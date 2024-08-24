@@ -20,11 +20,11 @@ public class WithdrawResponse {
     private String cardNumber;
 
     @JsonProperty("withdraw")
-    @Schema(description = "card number", example = "500")
+    @Schema(description = "withdraw sum", example = "500")
     private String withdraw;
 
     @JsonProperty("balance")
-    @Schema(description = "card number", example = "300")
+    @Schema(description = "balance", example = "300")
     private BigDecimal balance;
 
 }

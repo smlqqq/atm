@@ -8,11 +8,11 @@ import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -27,56 +27,56 @@ public class ATMService {
     private final Random random = new Random();
 
 
-    @Transactional
-    public void sendTransaction(BankCardModel senderCard, BankCardModel recipientCard, BigDecimal amount){
+
+    public void sendTransaction(Optional<BankCardModel> senderCard, Optional<BankCardModel> recipientCard, BigDecimal amount){
             // Create a new transaction
             TransactionModel transactionModel = new TransactionModel();
             transactionModel.setTransactionType("SEND");
             transactionModel.setAmount(amount);
             transactionModel.setTimestamp(LocalDateTime.now());
-            transactionModel.setSenderCard(senderCard);
-            transactionModel.setRecipientCard(recipientCard);
+            transactionModel.setSenderCard(senderCard.get());
+            transactionModel.setRecipientCard(recipientCard.get());
             transactionRepository.save(transactionModel);
             // Update sender's balance
-            BigDecimal newSenderBalance = senderCard.getBalance().subtract(amount);
-            senderCard.setBalance(newSenderBalance);
+            BigDecimal newSenderBalance = senderCard.get().getBalance().subtract(amount);
+            senderCard.get().setBalance(newSenderBalance);
             // Update recipient's balance
-            BigDecimal newRecipientBalance = recipientCard.getBalance().add(amount);
-            recipientCard.setBalance(newRecipientBalance);
+            BigDecimal newRecipientBalance = recipientCard.get().getBalance().add(amount);
+            recipientCard.get().setBalance(newRecipientBalance);
             // Save updated sender and recipient cards
-            bankCardRepository.save(senderCard);
-            bankCardRepository.save(recipientCard);
+            bankCardRepository.save(senderCard.get());
+            bankCardRepository.save(recipientCard.get());
 
     }
 
-    @Transactional
-    public void depositCashFromATM(BankCardModel card, BigDecimal amount){
+
+    public void depositCashFromATM(Optional<BankCardModel> card, BigDecimal amount){
             // Increase balance
-            BigDecimal newBalance = card.getBalance().add(amount);
-            card.setBalance(newBalance);
+            BigDecimal newBalance = card.get().getBalance().add(amount);
+            card.get().setBalance(newBalance);
             // Create a new transaction
             TransactionModel transactionModel = new TransactionModel();
             transactionModel.setTransactionType("DEPOSIT_FROM_ATM");
             transactionModel.setAmount(amount);
             transactionModel.setTimestamp(LocalDateTime.now());
             transactionModel.setSenderATMModel(returnAtmName());
-            transactionModel.setRecipientCard(card);
+            transactionModel.setRecipientCard(card.get());
             transactionRepository.save(transactionModel);
 
     }
 
-    @Transactional
-    public void withdrawFromATM(BankCardModel card, BigDecimal amount){
+
+    public void withdrawFromATM(Optional<BankCardModel> card, BigDecimal amount){
             // Decrease balance
-            BigDecimal newBalance = card.getBalance().subtract(amount);
-            card.setBalance(newBalance);
+            BigDecimal newBalance = card.get().getBalance().subtract(amount);
+            card.get().setBalance(newBalance);
             // Create a new transaction
             TransactionModel transactionModel = new TransactionModel();
             transactionModel.setTransactionType("WITHDRAW_FROM_ATM");
             transactionModel.setAmount(amount);
             transactionModel.setTimestamp(LocalDateTime.now());
             transactionModel.setSenderATMModel(returnAtmName());
-            transactionModel.setRecipientCard(card);
+            transactionModel.setRecipientCard(card.get());
             transactionRepository.save(transactionModel);
 
     }
@@ -109,15 +109,16 @@ public class ATMService {
         return BigDecimal.valueOf(0);
     }
 
-    @Transactional
+
     public BigDecimal checkBalance(String cardNumber) {
-        BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
-        return card.getBalance();
+        Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
+        return card.get().getBalance();
     }
 
-    @Transactional
-    public BankCardModel deleteCardByNumber(String cardNumber){
-        BankCardModel card = bankCardRepository.findByCardNumber(cardNumber);
+
+    public Optional<BankCardModel> deleteCardByNumber(String cardNumber){
+        Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
+        bankCardRepository.delete(card.get());
         return card;
     }
 
@@ -126,5 +127,7 @@ public class ATMService {
         int randomIndex = random.nextInt(allATMModelNames.size());
         return allATMModelNames.get(randomIndex);
     }
+
+    
 
 }
