@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.controller;
 
+import com.alex.d.springbootatm.kafka.KafkaProducerService;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
@@ -33,6 +34,8 @@ import java.util.Optional;
 public class ManagerController {
 
     @Autowired
+    KafkaProducerService kafkaProducerService;
+    @Autowired
     private BankCardRepository bankCardRepository;
     @Autowired
     private ATMService atmService;
@@ -53,6 +56,7 @@ public class ManagerController {
     public ResponseEntity<List<BankCardModel>> getAllCards() {
         List<BankCardModel> cards = bankCardRepository.findAll();
         log.info("Retrieved {} cards from the database", cards.size());
+        kafkaProducerService.sendMessage("atm-topic", "Retrieved "+  cards.size() +" cards from the database");
         return ResponseEntity.status(HttpStatus.OK).body(cards);
     }
 
@@ -76,16 +80,19 @@ public class ManagerController {
         if (!LuhnsAlgorithm.isCorrectNumber(cardNumber)) {
             log.error("Invalid credit card number {}", cardNumber);
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid credit card number.", "/withdraw/" + cardNumber);
+            kafkaProducerService.sendMessage("atm-topic", "Invalid credit card number " + cardNumber);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
         if (card.isPresent()) {
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
+            kafkaProducerService.sendMessage("atm-topic", "Card with number " + cardNumber +" was deleted");
             return ResponseEntity.status(HttpStatus.OK).body(card);
         }
 
         log.error("Invalid credit card number {}", cardNumber);
+        kafkaProducerService.sendMessage("atm-topic", "Invalid credit card number " + cardNumber);
         ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -105,6 +112,7 @@ public class ManagerController {
     public ResponseEntity createNewCard() {
         BankCardModel createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
+        kafkaProducerService.sendMessage("atm-topic","New card created: " + createdCard.getCardNumber() );
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
     }
 
@@ -128,8 +136,8 @@ public class ManagerController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
         Resource resource = new FileSystemResource(file);
+        kafkaProducerService.sendMessage("atm-topic", "Report downloaded successfully " + file.getName());
         return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
                 .body(resource);
     }
