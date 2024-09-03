@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.controller;
 
+import com.alex.d.springbootatm.dto.BankCardDTO;
 import com.alex.d.springbootatm.kafka.KafkaProducerService;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
@@ -18,7 +19,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -110,7 +110,7 @@ public class ManagerController {
 
     @PostMapping("/card")
     public ResponseEntity createNewCard() {
-        BankCardModel createdCard = atmService.createCard();
+        BankCardDTO createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
         kafkaProducerService.sendMessage("atm-topic","New card created: " + createdCard.getCardNumber() );
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
