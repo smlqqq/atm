@@ -28,7 +28,6 @@ A RESTful API created using Spring Boot. This project provides basic functionali
 - **Flyway Core**: Database migration tool for managing database changes.
 - **Flyway Database PostgreSQL**: Flyway extension for PostgreSQL database migrations.
 - **SLF4J API**: Simple Logging Facade for Java, provides a logging API that can be used with various logging frameworks.
-- **JCL Over SLF4J**: Redirects Jakarta Commons Logging (JCL) to SLF4J for unified logging.
 - **Springdoc OpenAPI Starter WebMVC UI**: Integrates OpenAPI (formerly Swagger UI) with Spring Boot for API documentation.
 - **Kafka**: Supports event streaming and messaging capabilities within the application.
 - **Docker**: Used for containerizing the application, simplifying deployment in various environments.
