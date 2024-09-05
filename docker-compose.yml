@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - "9092:9092"
+  app:
+    image: spring-boot-atm
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pg-bank-bg-sined9206-5a33.c.aivencloud.com:10636/defaultdb
+      SPRING_DATASOURCE_USERNAME: avnadmin
+      SPRING_DATASOURCE_PASSWORD: AVNS_IcZzDXG1HHeOn84vcjk
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_DB: defaultdb
+      POSTGRES_USER: avnadmin
+      POSTGRES_PASSWORD: AVNS_IcZzDXG1HHeOn84vcjk
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  flyway:
+    image: flyway/flyway
+    container_name: flyway
+    depends_on:
+      - postgres
+    command: -jdbc:postgresql://pg-bank-bg-sined9206-5a33.c.aivencloud.com:10636/defaultdb -user=avnadmin -password=AVNS_IcZzDXG1HHeOn84vcjk -locations=filesystem:/flyway/sql migrate
+    volumes:
+      - ./db/migration:/flyway/sql
+
+volumes:
+  postgres_data:
+
+# docker-compose up --build
+
+#  docker login
+#  docker tag exchange-rate-data-parser a1j1oqnl52/spring-boot-atm
+#  docker push a1j1oqnl52/spring-boot-atm:latest
