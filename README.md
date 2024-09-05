@@ -8,11 +8,14 @@ A RESTful API created using Spring Boot. This project provides basic functionali
     - Spring Boot 3.2.2
     - Spring Data JPA
     - Spring Web
+    - Spring Security
     - PostgreSQL
     - Flyway Migration
     - Springdoc OpenAPI (Swagger UI)
     - Lombok
-    - SLF4J and Log4j for logging
+    - SLF4J for logging
+    - Kafka
+    - Docker
 
 ## Dependencies
 
