@@ -19,18 +19,19 @@ A RESTful API created using Spring Boot. This project provides basic functionali
 
 ## Dependencies
 
-   - Spring Boot Starter Data JPA: Provides support for Spring Data JPA with Hibernate.
-   - Spring Boot Starter Web: Starter for building web applications using Spring MVC.
-   - PostgreSQL Driver: PostgreSQL JDBC driver for connecting to the PostgreSQL database.
-   - Spring Boot Starter Test: Starter for testing Spring Boot applications with libraries including JUnit, Hamcrest, and Mockito.
-   - Spring Boot Starter Thymeleaf: Integrates Thymeleaf with Spring Boot for server-side rendering of HTML.
-   - Lombok: Java library to reduce boilerplate code for models and entities.
-   - Flyway Core: Database migration tool for managing database changes.
-   - Flyway Database PostgreSQL: Flyway extension for PostgreSQL database migrations.
-   - SLF4J API: Simple Logging Facade for Java.
-   - Log4j Over SLF4J: Redirects SLF4J logging to Log4j.
-   - JCL Over SLF4J: Redirects Jakarta Commons Logging (JCL) to SLF4J.
-   - Springdoc OpenAPI Starter WebMVC UI: Integrates OpenAPI (formerly Swagger UI) with Spring Boot for API documentation.
+- **Spring Boot Starter Data JPA**: Provides support for Spring Data JPA with Hibernate for working with databases.
+- **Spring Boot Starter Web**: Starter for building web applications using Spring MVC.
+- **PostgreSQL Driver**: JDBC driver for connecting to the PostgreSQL database.
+- **Spring Boot Starter Test**: Starter for testing Spring Boot applications with libraries including JUnit, Hamcrest, and Mockito.
+- **Spring Boot Starter Thymeleaf**: Integrates Thymeleaf with Spring Boot for server-side rendering of HTML.
+- **Lombok**: Java library to reduce boilerplate code in models and entities.
+- **Flyway Core**: Database migration tool for managing database changes.
+- **Flyway Database PostgreSQL**: Flyway extension for PostgreSQL database migrations.
+- **SLF4J API**: Simple Logging Facade for Java, provides a logging API that can be used with various logging frameworks.
+- **JCL Over SLF4J**: Redirects Jakarta Commons Logging (JCL) to SLF4J for unified logging.
+- **Springdoc OpenAPI Starter WebMVC UI**: Integrates OpenAPI (formerly Swagger UI) with Spring Boot for API documentation.
+- **Kafka**: Supports event streaming and messaging capabilities within the application.
+- **Docker**: Used for containerizing the application, simplifying deployment in various environments.
 
 ## Setup and Installation
 
