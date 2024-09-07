@@ -9,6 +9,6 @@ import java.math.BigDecimal;
 @Setter
 public class BankCardDTO {
     private String cardNumber;
-    private String plainPin; // Оригинальный 4-значный PIN-код
+    private String pinCode; // Оригинальный 4-значный PIN-код
     private BigDecimal balance;
 }

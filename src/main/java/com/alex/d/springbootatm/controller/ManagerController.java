@@ -15,14 +15,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +31,9 @@ import java.util.Optional;
 public class ManagerController {
 
     @Autowired
-    KafkaProducerService kafkaProducerService;
+    private KafkaTemplate<String, Object> kafkaTemplate;
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
     @Autowired
     private BankCardRepository bankCardRepository;
     @Autowired
@@ -56,7 +55,7 @@ public class ManagerController {
     public ResponseEntity<List<BankCardModel>> getAllCards() {
         List<BankCardModel> cards = bankCardRepository.findAll();
         log.info("Retrieved {} cards from the database", cards.size());
-        kafkaProducerService.sendMessage("atm-topic", "Retrieved "+  cards.size() +" cards from the database");
+        kafkaProducerService.sendMessage("atm-topic", "Retrieved " + cards.size() + " cards from the database");
         return ResponseEntity.status(HttpStatus.OK).body(cards);
     }
 
@@ -87,7 +86,7 @@ public class ManagerController {
         if (card.isPresent()) {
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
-            kafkaProducerService.sendMessage("atm-topic", "Card with number " + cardNumber +" was deleted");
+            kafkaProducerService.sendMessage("atm-topic", "Card with number " + cardNumber + " was deleted");
             return ResponseEntity.status(HttpStatus.OK).body(card);
         }
 
@@ -112,7 +111,7 @@ public class ManagerController {
     public ResponseEntity createNewCard() {
         BankCardDTO createdCard = atmService.createCard();
         log.info("New card created: {}", createdCard.getCardNumber());
-        kafkaProducerService.sendMessage("atm-topic","New card created: " + createdCard.getCardNumber() );
+        kafkaProducerService.sendMessage("atm-topic", "New card created: " + createdCard.getCardNumber() + " " + createdCard.getPinCode());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
     }
 
@@ -129,18 +128,23 @@ public class ManagerController {
     )
     @GetMapping("/download")
     public ResponseEntity downloadFile() {
-        reportService.generateClientReport();
-        File file = new File("report.xlsx");
-        ErrorResponse error = new ErrorResponse();
-        if(!file.exists()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        }
-        Resource resource = new FileSystemResource(file);
-        kafkaProducerService.sendMessage("atm-topic", "Report downloaded successfully " + file.getName());
-        return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
-                .body(resource);
+        return reportService.generateClientReport();
     }
 
+    @Operation(
+            summary = "Download",
+            description = "Download all data by a card number.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = {
+                            @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}),
+                    @ApiResponse(responseCode = "404", description = "Not Found", content = {
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
+            }
+    )
 
+    @GetMapping("/download/{cardNumber}")
+    public ResponseEntity downloadCard(@PathVariable("cardNumber") String cardNumber) {
+        return reportService.generateIndividualClientReport(cardNumber);
+
+    }
 }

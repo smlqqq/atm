@@ -102,8 +102,8 @@ public class AtmServiceImpl implements ATMService {
         BankCardModel card = saveCreatedCardToDB();
         responseDto.setCardNumber(card.getCardNumber());
         log.info(responseDto.getCardNumber());
-        responseDto.setPlainPin(generatePinCode());
-        log.info(responseDto.getPlainPin());
+        responseDto.setPinCode(generatePinCode());
+        log.info(responseDto.getPinCode());
         responseDto.setBalance(card.getBalance());
         return responseDto;
     }
