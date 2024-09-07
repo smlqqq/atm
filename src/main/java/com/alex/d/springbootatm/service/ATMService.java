@@ -16,6 +16,7 @@ public interface ATMService {
     void withdrawFromATM(Optional<BankCardModel> card, BigDecimal amount);
 
     BankCardDTO createCard();
+
     BankCardModel saveCreatedCardToDB();
 
     String generatePinCode();

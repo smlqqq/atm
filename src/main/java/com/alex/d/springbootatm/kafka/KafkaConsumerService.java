@@ -6,8 +6,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaConsumerService {
 
-    @KafkaListener(topics = "atm-topic", groupId = "consumer")
+    @KafkaListener(topics = {"atm-topic","personal-data-topic"}, groupId = "consumer")
     public void listen(String message) {
-        System.out.println("Received message: " + message);
+        System.out.println("Send message: " + message);
     }
+
 }
