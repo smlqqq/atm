@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.service;
 
+import com.alex.d.springbootatm.dto.BankCardDTO;
 import com.alex.d.springbootatm.model.ATMModel;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.ATMRepository;
@@ -7,7 +8,6 @@ import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +34,7 @@ public class ATMModelServiceTest {
     @Mock
     private ATMRepository atmRepository;
 
-    @InjectMocks
+    @Mock
     private ATMService atmService;
 
     @Test
@@ -75,8 +75,8 @@ public class ATMModelServiceTest {
         BankCardModel card = new BankCardModel(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
         List<ATMModel> allATMModels = new ArrayList<>();
-        allATMModels.add(new ATMModel(1L,"ATM1","null"));
-        allATMModels.add(new ATMModel(2L,"ATM2","null"));
+        allATMModels.add(new ATMModel(1L, "ATM1", "null"));
+        allATMModels.add(new ATMModel(2L, "ATM2", "null"));
         when(atmRepository.findAll()).thenReturn(allATMModels);
         atmService.depositCashFromATM(Optional.of(card), amount);
         assertEquals(BigDecimal.valueOf(700), card.getBalance());
@@ -88,7 +88,7 @@ public class ATMModelServiceTest {
         BankCardModel card = new BankCardModel(1L, "1234567890123456", "1111", BigDecimal.valueOf(500));
         BigDecimal amount = BigDecimal.valueOf(200);
         List<ATMModel> allATMModels = new ArrayList<>();
-        allATMModels.add(new ATMModel(1L,"ATM1","null"));
+        allATMModels.add(new ATMModel(1L, "ATM1", "null"));
         when(atmRepository.findAll()).thenReturn(allATMModels);
         atmService.withdrawFromATM(Optional.of(card), amount);
         assertEquals(BigDecimal.valueOf(300), card.getBalance());
@@ -99,10 +99,10 @@ public class ATMModelServiceTest {
     void testCreateCard() {
         BankCardModel newCard = new BankCardModel(1L, "1234567890123456", "1111", BigDecimal.valueOf(0));
         when(bankCardRepository.save(any())).thenReturn(newCard);
-        BankCardModel createdCard = atmService.createCard();
+        BankCardDTO createdCard = atmService.createCard();
         assertNotNull(createdCard);
         assertEquals("1234567890123456", createdCard.getCardNumber());
-        assertEquals("1111", createdCard.getPinNumber());
+        assertEquals("1111", createdCard.getPinCode());
         assertEquals(BigDecimal.valueOf(0), createdCard.getBalance());
     }
 }
