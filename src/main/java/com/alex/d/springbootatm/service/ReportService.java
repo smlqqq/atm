@@ -35,11 +35,11 @@ public class ReportService {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Clients");
 
-            Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("id");
-            headerRow.createCell(1).setCellValue("card_number");
-            headerRow.createCell(2).setCellValue("pin_number");
-            headerRow.createCell(3).setCellValue("balance");
+            Row createHeaderRow = sheet.createRow(0);
+            createHeaderRow.createCell(0).setCellValue("id");
+            createHeaderRow.createCell(1).setCellValue("card_number");
+            createHeaderRow.createCell(2).setCellValue("pin_number");
+            createHeaderRow.createCell(3).setCellValue("balance");
 
             List<BankCardModel> cards = bankCardRepository.findAll();
 
@@ -52,8 +52,11 @@ public class ReportService {
                 row.createCell(3).setCellValue(String.valueOf(card.getBalance()));
             }
 
-            for (int i = 0; i < 4; i++) {
-                sheet.autoSizeColumn(i);
+            Row getHeaderRow = sheet.getRow(0);
+            if (getHeaderRow != null) {
+                for (int i = 0; i < createHeaderRow.getPhysicalNumberOfCells(); i++) {
+                    sheet.autoSizeColumn(i);
+                }
             }
 
             try (FileOutputStream outputStream = new FileOutputStream(fileName)) {

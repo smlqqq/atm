@@ -89,9 +89,8 @@ public class AtmServiceImpl implements ATMService {
     public BankCardModel saveCreatedCardToDB() {
         BankCardModel card = new BankCardModel();
         card.setCardNumber(generateCreditCardNumber());
-        log.info(card.getCardNumber());
         card.setPinNumber(hashPassword(generatePinCode()));
-        log.info(card.getPinNumber());
+        log.info("Card saved into db {} pin code {}", card.getCardNumber(), card.getPinNumber());
         card.setBalance(generateBalance());
         return bankCardRepository.save(card);
     }
@@ -101,9 +100,8 @@ public class AtmServiceImpl implements ATMService {
         BankCardDTO responseDto = new BankCardDTO();
         BankCardModel card = saveCreatedCardToDB();
         responseDto.setCardNumber(card.getCardNumber());
-        log.info(responseDto.getCardNumber());
         responseDto.setPinCode(generatePinCode());
-        log.info(responseDto.getPinCode());
+        log.info("Card and pincode info {} pin code {}",responseDto.getCardNumber(), responseDto.getPinCode());
         responseDto.setBalance(card.getBalance());
         return responseDto;
     }

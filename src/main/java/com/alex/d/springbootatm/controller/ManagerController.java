@@ -145,6 +145,5 @@ public class ManagerController {
     @GetMapping("/download/{cardNumber}")
     public ResponseEntity downloadCard(@PathVariable("cardNumber") String cardNumber) {
         return reportService.generateIndividualClientReport(cardNumber);
-
     }
 }
