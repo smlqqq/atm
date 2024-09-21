@@ -31,6 +31,7 @@ public class AtmServiceImpl implements ATMService {
     private ATMRepository atmRepository;
 
     @Override
+    @Transactional
     public void sendTransaction(Optional<BankCardModel> senderCard, Optional<BankCardModel> recipientCard, BigDecimal amount) {
         // Create a new transaction
         TransactionModel transactionModel = new TransactionModel();
@@ -53,6 +54,7 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
+    @Transactional
     public void depositCashFromATM(Optional<BankCardModel> card, BigDecimal amount) {
         // Increase balance
         BigDecimal newBalance = card.get().getBalance().add(amount);
@@ -68,7 +70,9 @@ public class AtmServiceImpl implements ATMService {
 
     }
 
+
     @Override
+    @Transactional
     public void withdrawFromATM(Optional<BankCardModel> card, BigDecimal amount) {
         // Decrease balance
         BigDecimal newBalance = card.get().getBalance().subtract(amount);
@@ -130,6 +134,7 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
+    @Transactional
     public Optional<BankCardModel> deleteCardByNumber(String cardNumber) {
         Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
         bankCardRepository.delete(card.get());
