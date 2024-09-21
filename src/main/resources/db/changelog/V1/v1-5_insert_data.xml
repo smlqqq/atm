@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+<changeSet id="v1-5" author="Alex D">
+    <insert tableName="atms">
+        <column name="name" value="HarmonyATM1"/>
+        <column name="location" value="5650 Ledner Islands, Kiehnside, Arizona"/>
+    </insert>
+    <insert tableName="atms">
+        <column name="name" value="CourtSuiteATM862"/>
+        <column name="location" value="612 Schmeler, New Samside, Texas"/>
+    </insert>
+    <insert tableName="atms">
+        <column name="name" value="UnderpassATM378"/>
+        <column name="location" value="56939 Beth, West Caroline, Kansas"/>
+    </insert>
+</changeSet>
+</databaseChangeLog>

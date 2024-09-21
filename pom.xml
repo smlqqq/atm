@@ -20,24 +20,25 @@
 
 <!--    DB MIGRATION -->
         <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>10.8.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-            <version>10.8.1</version>
-            <scope>runtime</scope>
-        </dependency>
-<!--        Liquibase-->
 <!--        <dependency>-->
-<!--            <groupId>org.liquibase</groupId>-->
-<!--            <artifactId>liquibase-core</artifactId>-->
-<!--            <version>${liquibase.version}</version>-->
+<!--            <groupId>org.flywaydb</groupId>-->
+<!--            <artifactId>flyway-core</artifactId>-->
+<!--            <version>10.8.1</version>-->
 <!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.flywaydb</groupId>-->
+<!--            <artifactId>flyway-database-postgresql</artifactId>-->
+<!--            <version>10.8.1</version>-->
+<!--            <scope>runtime</scope>-->
+<!--        </dependency>-->
+<!--        Liquibase-->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -125,5 +126,12 @@
             </plugin>
         </plugins>
     </build>
+    <repositories>
+        <repository>
+            <id>maven_central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+        </repository>
+    </repositories>
 
 </project>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="v1-3" author="Alex D">
+        <createTable tableName="atm_transactions" schemaName="liquibase_schema">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="transaction_type" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="timestamp" defaultValueComputed="current_timestamp"/>
+            <column name="sender" type="varchar(16)"/>
+            <column name="recipient" type="varchar(16)"/>
+            <column name="atm_name" type="varchar(25)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
