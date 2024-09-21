@@ -10,7 +10,7 @@ A RESTful API created using Spring Boot. This project provides basic functionali
     - Spring Web
     - Spring Security
     - PostgreSQL
-    - Flyway Migration
+    - Liquibase Migration 
     - Springdoc OpenAPI (Swagger UI)
     - Lombok
     - SLF4J for logging
@@ -25,8 +25,7 @@ A RESTful API created using Spring Boot. This project provides basic functionali
 - **Spring Boot Starter Test**: Starter for testing Spring Boot applications with libraries including JUnit, Hamcrest, and Mockito.
 - **Spring Boot Starter Thymeleaf**: Integrates Thymeleaf with Spring Boot for server-side rendering of HTML.
 - **Lombok**: Java library to reduce boilerplate code in models and entities.
-- **Flyway Core**: Database migration tool for managing database changes.
-- **Flyway Database PostgreSQL**: Flyway extension for PostgreSQL database migrations.
+- **Liquibase**: Database migration tool for managing database changes.
 - **SLF4J API**: Simple Logging Facade for Java, provides a logging API that can be used with various logging frameworks.
 - **Springdoc OpenAPI Starter WebMVC UI**: Integrates OpenAPI (formerly Swagger UI) with Spring Boot for API documentation.
 - **Kafka**: Supports event streaming and messaging capabilities within the application.
