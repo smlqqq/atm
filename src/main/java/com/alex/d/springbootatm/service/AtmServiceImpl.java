@@ -31,6 +31,7 @@ public class AtmServiceImpl implements ATMService {
     private ATMRepository atmRepository;
 
     @Override
+    @Transactional
     public void sendTransaction(Optional<BankCardModel> senderCard, Optional<BankCardModel> recipientCard, BigDecimal amount) {
         // Create a new transaction
         TransactionModel transactionModel = new TransactionModel();
@@ -53,6 +54,7 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
+    @Transactional
     public void depositCashFromATM(Optional<BankCardModel> card, BigDecimal amount) {
         // Increase balance
         BigDecimal newBalance = card.get().getBalance().add(amount);
@@ -68,7 +70,9 @@ public class AtmServiceImpl implements ATMService {
 
     }
 
+
     @Override
+    @Transactional
     public void withdrawFromATM(Optional<BankCardModel> card, BigDecimal amount) {
         // Decrease balance
         BigDecimal newBalance = card.get().getBalance().subtract(amount);
@@ -89,9 +93,8 @@ public class AtmServiceImpl implements ATMService {
     public BankCardModel saveCreatedCardToDB() {
         BankCardModel card = new BankCardModel();
         card.setCardNumber(generateCreditCardNumber());
-        log.info(card.getCardNumber());
         card.setPinNumber(hashPassword(generatePinCode()));
-        log.info(card.getPinNumber());
+        log.info("Card saved into db {} pin code {}", card.getCardNumber(), card.getPinNumber());
         card.setBalance(generateBalance());
         return bankCardRepository.save(card);
     }
@@ -101,9 +104,8 @@ public class AtmServiceImpl implements ATMService {
         BankCardDTO responseDto = new BankCardDTO();
         BankCardModel card = saveCreatedCardToDB();
         responseDto.setCardNumber(card.getCardNumber());
-        log.info(responseDto.getCardNumber());
-        responseDto.setPlainPin(generatePinCode());
-        log.info(responseDto.getPlainPin());
+        responseDto.setPinCode(generatePinCode());
+        log.info("Card and pincode info {} pin code {}",responseDto.getCardNumber(), responseDto.getPinCode());
         responseDto.setBalance(card.getBalance());
         return responseDto;
     }
@@ -132,6 +134,7 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
+    @Transactional
     public Optional<BankCardModel> deleteCardByNumber(String cardNumber) {
         Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
         bankCardRepository.delete(card.get());
