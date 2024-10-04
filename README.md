@@ -44,7 +44,7 @@ A RESTful API created using Spring Boot. This project provides basic functionali
    -  **(Optional) Update database configurations in application.properties**
      If your database is hosted at some cloud platform or if you have modified the SQL script file with some different username and password, update the src/main/resources/application.properties file accordingly:
       ``` 
-       spring.datasource.url=jdbc:postgresql://localhost:5432/bank_db
+       spring.datasource.url=jdbc:postgresql://localhost:5432/yourDb
        spring.datasource.username=postgres
        spring.datasource.password=postgres
       ```
