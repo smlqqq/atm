@@ -35,8 +35,8 @@ A RESTful API created using Spring Boot. This project provides basic functionali
 
    -  **Clone the repo from GitHub**
        ```
-        git clone https://github.com/smlqqq/spring-boot-atm.git
-        cd spring-boot-atm
+        git clone https://github.com/smlqqq/atm.git
+        cd atm
        ```
 
    -  **Set up a PostgreSQL database and configure the connection properties in application.properties.**
