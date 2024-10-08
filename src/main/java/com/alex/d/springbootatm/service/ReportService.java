@@ -32,6 +32,7 @@ public class ReportService {
 
     public ResponseEntity generateClientReport() {
         String fileName = "report.xlsx";
+
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Clients");
 
@@ -71,6 +72,7 @@ public class ReportService {
 
     public ResponseEntity generateIndividualClientReport(String cardNumber) {
         String fileName = cardNumber + "_personal_card_report.xlsx";
+
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Personal Data");
 

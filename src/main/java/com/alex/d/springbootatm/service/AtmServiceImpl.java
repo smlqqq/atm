@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Random;
 
@@ -105,7 +106,7 @@ public class AtmServiceImpl implements ATMService {
         BankCardModel card = saveCreatedCardToDB();
         responseDto.setCardNumber(card.getCardNumber());
         responseDto.setPinCode(generatePinCode());
-        log.info("Card and pincode info {} pin code {}",responseDto.getCardNumber(), responseDto.getPinCode());
+        log.info("Card and pincode info {} pin code {}", responseDto.getCardNumber(), responseDto.getPinCode());
         responseDto.setBalance(card.getBalance());
         return responseDto;
     }
@@ -130,15 +131,21 @@ public class AtmServiceImpl implements ATMService {
     @Override
     public BigDecimal checkBalance(String cardNumber) {
         Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
-        return card.get().getBalance();
+        if (card.isPresent()) {
+            return card.get().getBalance();
+        } else
+            throw new NoSuchElementException("Card not found with number: " + cardNumber);
     }
 
     @Override
     @Transactional
     public Optional<BankCardModel> deleteCardByNumber(String cardNumber) {
         Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
-        bankCardRepository.delete(card.get());
-        return card;
+        if (card.isPresent()) {
+            bankCardRepository.delete(card.get());
+            return card;
+        } else
+            throw new NoSuchElementException("Card with number: " + cardNumber + " successfully deleted.");
     }
 
     @Override
