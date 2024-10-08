@@ -1,4 +1,4 @@
-package com.alex.d.springbootatm.kafka;
+package com.alex.d.springbootatm.service;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
