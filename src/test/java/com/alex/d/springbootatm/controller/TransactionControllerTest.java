@@ -35,18 +35,25 @@ class TransactionControllerTest {
         // Arrange
         String senderCardNumber = "4000003813378680";
         String recipientCardNumber = "4000007329214081";
+
         BigDecimal amount = BigDecimal.valueOf(500);
+
         BankCardModel senderCard = new BankCardModel(1L, senderCardNumber, "1111", BigDecimal.valueOf(1000));
         BankCardModel recipientCard = new BankCardModel(2L, recipientCardNumber, "2222", BigDecimal.valueOf(0));
+
         when(bankCardRepository.findByCardNumber(senderCardNumber)).thenReturn(Optional.of(senderCard));
         when(bankCardRepository.findByCardNumber(recipientCardNumber)).thenReturn(Optional.of(recipientCard));
+
         doNothing().when(atmService).sendTransaction(Optional.of(senderCard), Optional.of(recipientCard), amount);
+
         ResponseEntity<TransferResponse> response = transactionController.transferFunds(senderCardNumber, recipientCardNumber, amount);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(senderCardNumber, response.getBody().getSenderCardNumber());
         assertEquals(recipientCardNumber, response.getBody().getRecipientCardNumber());
         assertEquals(amount, response.getBody().getTransferred_funds());
         assertEquals(amount, response.getBody().getRecipient_balance());
+
         verify(bankCardRepository, times(1)).findByCardNumber(senderCardNumber);
         verify(bankCardRepository, times(1)).findByCardNumber(recipientCardNumber);
         verify(atmService, times(1)).sendTransaction(Optional.of(senderCard), Optional.of(recipientCard), amount);

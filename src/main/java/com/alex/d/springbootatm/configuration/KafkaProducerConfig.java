@@ -1,4 +1,4 @@
-package com.alex.d.springbootatm.kafka;
+package com.alex.d.springbootatm.configuration;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
