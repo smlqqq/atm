@@ -6,7 +6,6 @@ import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
-import com.alex.d.springbootatm.service.LuhnsAlgorithm;
 import com.alex.d.springbootatm.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -54,8 +52,6 @@ public class ManagerController {
     @GetMapping("/cards")
     public ResponseEntity<List<BankCardModel>> getAllCards() {
         List<BankCardModel> cards = bankCardRepository.findAll();
-        log.info("Retrieved {} cards from the database", cards.size());
-        kafkaProducerService.sendMessage("atm-topic", "Retrieved " + cards.size() + " cards from the database");
         return ResponseEntity.status(HttpStatus.OK).body(cards);
     }
 
@@ -73,24 +69,15 @@ public class ManagerController {
     )
     @DeleteMapping("/delete/{cardNumber}")
     public ResponseEntity deleteCard(@PathVariable("cardNumber") String cardNumber) {
+        
+        if (!cardNumber.isEmpty()) {
+                atmService.deleteCardByNumber(cardNumber);
+                log.info("Card with number {} was deleted", cardNumber);
+                kafkaProducerService.sendMessage("atm-topic", "Card with number " + cardNumber + " was deleted");
+                return ResponseEntity.status(HttpStatus.OK).body(cardNumber);
+        } else
 
-        Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
-
-        if (!LuhnsAlgorithm.isCorrectNumber(cardNumber)) {
             log.error("Invalid credit card number {}", cardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid credit card number.", "/withdraw/" + cardNumber);
-            kafkaProducerService.sendMessage("atm-topic", "Invalid credit card number " + cardNumber);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-
-        if (card.isPresent()) {
-            atmService.deleteCardByNumber(cardNumber);
-            log.info("Card with number {} was deleted", cardNumber);
-            kafkaProducerService.sendMessage("atm-topic", "Card with number " + cardNumber + " was deleted");
-            return ResponseEntity.status(HttpStatus.OK).body(card);
-        }
-
-        log.error("Invalid credit card number {}", cardNumber);
         kafkaProducerService.sendMessage("atm-topic", "Invalid credit card number " + cardNumber);
         ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -143,7 +130,7 @@ public class ManagerController {
     )
 
     @GetMapping("/download/{cardNumber}")
-    public ResponseEntity downloadCard(@PathVariable("cardNumber") String cardNumber) {
+    public ResponseEntity downloadDataByACardNumber(@PathVariable("cardNumber") String cardNumber) {
         return reportService.generateIndividualClientReport(cardNumber);
     }
 }

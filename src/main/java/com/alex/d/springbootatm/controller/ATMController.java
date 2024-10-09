@@ -67,7 +67,7 @@ public class ATMController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
-        BigDecimal balance = atmService.checkBalance(cardNumber);
+        BigDecimal balance = atmService.checkBalanceByCardNumber(cardNumber);
         log.info("Card: {} Balance: {}", cardNumber, balance);
 
         BalanceResponse response = new BalanceResponse(cardNumber, balance);
