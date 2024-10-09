@@ -22,16 +22,16 @@ import static org.mockito.Mockito.*;
 class TransactionControllerTest {
 
     @Mock
-    private BankCardRepository bankCardRepository;
+    BankCardRepository bankCardRepository;
 
     @Mock
-    private ATMService atmService;
+    ATMService atmService;
 
     @InjectMocks
-    private TransactionController transactionController;
+    TransactionController transactionController;
 
     @Test
-    void testTransferFunds(){
+    void testTransferFunds() {
         // Arrange
         String senderCardNumber = "4000003813378680";
         String recipientCardNumber = "4000007329214081";

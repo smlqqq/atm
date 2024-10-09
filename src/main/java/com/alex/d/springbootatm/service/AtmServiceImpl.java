@@ -7,6 +7,7 @@ import com.alex.d.springbootatm.model.TransactionModel;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,7 @@ public class AtmServiceImpl implements ATMService {
     public BankCardModel saveCreatedCardToDB() {
         BankCardModel card = new BankCardModel();
         card.setCardNumber(generateCreditCardNumber());
-        card.setPinNumber(hashPassword(generatePinCode()));
+        card.setPinNumber(hashPinCode(generatePinCode()));
         log.info("Card saved into db {} pin code {}", card.getCardNumber(), card.getPinNumber());
         card.setBalance(generateBalance());
         return bankCardRepository.save(card);
@@ -129,7 +130,7 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
-    public BigDecimal checkBalance(String cardNumber) {
+    public BigDecimal checkBalanceByCardNumber(String cardNumber) {
         Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
         if (card.isPresent()) {
             return card.get().getBalance();
@@ -144,8 +145,9 @@ public class AtmServiceImpl implements ATMService {
         if (card.isPresent()) {
             bankCardRepository.delete(card.get());
             return card;
-        } else
-            throw new NoSuchElementException("Card with number: " + cardNumber + " successfully deleted.");
+        } else {
+            throw new EntityNotFoundException("Card not found " + cardNumber);
+        }
     }
 
     @Override
@@ -157,9 +159,9 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
-    public String hashPassword(String password) {
+    public String hashPinCode(String pinCode) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        return encoder.encode(password);
+        return encoder.encode(pinCode);
     }
 
     @Override

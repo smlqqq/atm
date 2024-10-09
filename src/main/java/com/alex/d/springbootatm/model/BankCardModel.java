@@ -36,10 +36,10 @@ public class BankCardModel {
     @Schema(description = "card balance", example = "100")
     private BigDecimal balance;
 
-    @OneToMany(mappedBy = "senderCard") // Поле senderCard в TransactionModel
+    @OneToMany(mappedBy = "senderCard") // Field senderCard in TransactionModel
     private Set<TransactionModel> sentTransactions;
 
-    @OneToMany(mappedBy = "recipientCard") // Поле recipientCard в TransactionModel
+    @OneToMany(mappedBy = "recipientCard") // Field recipientCard in TransactionModel
     private Set<TransactionModel> receivedTransactions;
 
     public BankCardModel(Long id, String cardNumber, String pinNumber, BigDecimal balance) {

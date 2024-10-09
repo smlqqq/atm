@@ -25,13 +25,13 @@ class ATMModelControllerTest {
 
 
     @Mock
-    private BankCardRepository bankCardRepository;
+    BankCardRepository bankCardRepository;
 
     @Mock
-    private ATMService atmService;
+    ATMService atmService;
 
     @InjectMocks
-    private ATMController atmController;
+    ATMController atmController;
 
 
     @BeforeEach
@@ -45,7 +45,7 @@ class ATMModelControllerTest {
         BankCardModel bankCardModel = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
 
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(bankCardModel));
-        when(atmService.checkBalance(cardNumber)).thenReturn(BigDecimal.valueOf(1000));
+        when(atmService.checkBalanceByCardNumber(cardNumber)).thenReturn(BigDecimal.valueOf(1000));
 
         ResponseEntity<BalanceResponse> response = atmController.getBalance(cardNumber);
 
@@ -58,7 +58,7 @@ class ATMModelControllerTest {
     }
 
     @Test
-    void testDepositCash(){
+    void testDepositCash() {
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
         BankCardModel recipientCard = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(0));
@@ -77,17 +77,21 @@ class ATMModelControllerTest {
     }
 
     @Test
-    void testWithdraw(){
+    void testWithdraw() {
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
         BankCardModel card = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(1000));
+
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(card));
+
         ResponseEntity<WithdrawResponse> response = atmController.withdraw(cardNumber, amount);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(cardNumber, response.getBody().getCardNumber());
         assertEquals(amount.toString(), response.getBody().getWithdraw());
         assertEquals(BigDecimal.valueOf(500), response.getBody().getBalance());
+
         verify(bankCardRepository, times(1)).findByCardNumber(cardNumber);
         verify(atmService, times(1)).withdrawFromATM(Optional.of(card), amount);
     }
