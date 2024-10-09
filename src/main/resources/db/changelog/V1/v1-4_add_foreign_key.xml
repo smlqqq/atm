@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="v1-4" author="Alex D">
+        <addForeignKeyConstraint baseTableName="atm_transactions"
+                                 baseColumnNames="sender"
+                                 referencedTableName="atm_accounts"
+                                 referencedColumnNames="card_number"
+                                 constraintName="fk_sender_account"/>
+
+        <addForeignKeyConstraint baseTableName="atm_transactions"
+                                 baseColumnNames="recipient"
+                                 referencedTableName="atm_accounts"
+                                 referencedColumnNames="card_number"
+                                 constraintName="fk_recipient_account"/>
+
+        <addForeignKeyConstraint baseTableName="atm_transactions"
+                                 baseColumnNames="atm_name"
+                                 referencedTableName="atms"
+                                 referencedColumnNames="name"
+                                 constraintName="fk_atm_name"/>
+    </changeSet>
+
+</databaseChangeLog>

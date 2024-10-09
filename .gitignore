@@ -35,3 +35,5 @@ build/
 #Ignore
 logs/
 *.log
+*.gz
+*.xls

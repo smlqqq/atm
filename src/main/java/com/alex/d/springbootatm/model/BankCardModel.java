@@ -10,12 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "atm_accounts")
 @JsonTypeName("Bank card")
 public class BankCardModel {
@@ -37,5 +36,19 @@ public class BankCardModel {
     @Schema(description = "card balance", example = "100")
     private BigDecimal balance;
 
+    @OneToMany(mappedBy = "senderCard") // Поле senderCard в TransactionModel
+    private Set<TransactionModel> sentTransactions;
+
+    @OneToMany(mappedBy = "recipientCard") // Поле recipientCard в TransactionModel
+    private Set<TransactionModel> receivedTransactions;
+
+    public BankCardModel(Long id, String cardNumber, String pinNumber, BigDecimal balance) {
+        this.id = id;
+        this.cardNumber = cardNumber;
+        this.pinNumber = pinNumber;
+        this.balance = balance;
+    }
+
+    public BankCardModel() {}
 }
 

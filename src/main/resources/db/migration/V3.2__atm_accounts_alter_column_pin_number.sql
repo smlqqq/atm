@@ -1,0 +1,2 @@
+ALTER TABLE atm_accounts
+    ALTER COLUMN pin_number SET DATA TYPE VARCHAR(60);

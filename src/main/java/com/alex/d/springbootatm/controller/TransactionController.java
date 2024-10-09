@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -29,13 +31,12 @@ import java.time.Instant;
 @Tag(name = "Transactions")
 public class TransactionController {
 
-    private final BankCardRepository bankCardRepository;
-    private final ATMService atmService;
+    @Autowired
+    private  BankCardRepository bankCardRepository;
+    @Autowired
+    private  ATMService atmService;
 
-    public TransactionController(BankCardRepository bankCardRepository, ATMService atmService) {
-        this.bankCardRepository = bankCardRepository;
-        this.atmService = atmService;
-    }
+
 
     @PostMapping("/transfer")
     @Operation(
@@ -55,10 +56,10 @@ public class TransactionController {
             @Parameter(description = "Sender card number", required = true) @RequestParam("senderCardNumber") String senderCardNumber,
             @Parameter(description = "Recipient card number", required = true) @RequestParam("recipientCardNumber") String recipientCardNumber,
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
-    ){
+    ) {
 
-        BankCardModel senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
-        BankCardModel recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
+        Optional<BankCardModel> senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
+        Optional<BankCardModel> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             log.error("Invalid transfer amount: {}", amount);
@@ -78,7 +79,7 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
-        BigDecimal senderBalance = senderCard.getBalance();
+        BigDecimal senderBalance = senderCard.get().getBalance();
 
         if (senderBalance.compareTo(amount) < 0) {
             log.error("Insufficient funds on sender's card: {}", senderBalance);
@@ -86,11 +87,11 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
-        BigDecimal recipientBalance = recipientCard.getBalance();
+        BigDecimal recipientBalance = recipientCard.get().getBalance();
 
         atmService.sendTransaction(senderCard, recipientCard, amount);
-        log.info("Transactions of {} from card {} to card {} was successful.",
-                amount, senderCardNumber, recipientCardNumber);
+        log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
+
 
         TransferResponse response = new TransferResponse(senderCardNumber, recipientCardNumber, amount, senderBalance.subtract(amount), recipientBalance.add(amount));
 
