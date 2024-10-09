@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.dto.BankCardDTO;
-import com.alex.d.springbootatm.kafka.KafkaProducerService;
+import com.alex.d.springbootatm.service.KafkaProducerService;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
@@ -120,7 +120,7 @@ public class ManagerController {
 
     @Operation(
             summary = "Download",
-            description = "Download all data by a card number.",
+            description = "Download data by a card number.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
                             @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}),

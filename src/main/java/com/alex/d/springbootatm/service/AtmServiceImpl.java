@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Random;
 
@@ -131,7 +132,10 @@ public class AtmServiceImpl implements ATMService {
     @Override
     public BigDecimal checkBalanceByCardNumber(String cardNumber) {
         Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
-        return card.get().getBalance();
+        if (card.isPresent()) {
+            return card.get().getBalance();
+        } else
+            throw new NoSuchElementException("Card not found with number: " + cardNumber);
     }
 
     @Override
