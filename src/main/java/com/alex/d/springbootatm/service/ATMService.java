@@ -25,12 +25,12 @@ public interface ATMService {
 
     BigDecimal generateBalance();
 
-    BigDecimal checkBalance(String cardNumber);
+    BigDecimal checkBalanceByCardNumber(String cardNumber);
 
     Optional<BankCardModel> deleteCardByNumber(String cardNumber);
 
     ATMModel returnAtmName();
 
-    String hashPassword(String password);
+    String hashPinCode(String password);
 
 }
