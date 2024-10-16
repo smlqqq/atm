@@ -41,6 +41,12 @@ public class TransactionModel {
     @JoinColumn(name = "atm_name", referencedColumnName = "name")
     private ATMModel senderATMModel;
 
+    @Column(name = "sender_balance", nullable = true)
+    private BigDecimal senderBalanceAfter;
+
+    @Column(name = "recipient_balance", nullable = true)
+    private BigDecimal recipientBalanceAfter;
+
     @ManyToOne(fetch = FetchType.EAGER)
     private BankCardModel bankCardModel;
 

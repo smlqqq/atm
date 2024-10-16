@@ -13,11 +13,16 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<TransactionModel, Long> {
 
     @Query("SELECT new com.alex.d.springbootatm.dto.TransactionDetailsDTO(" +
-            "acc.cardNumber, a.amount, a.senderCard.cardNumber, a.transactionType, a.recipientCard.cardNumber, " +
-            "acc.balance, a.timestamp) " +
+            "a.senderCard.cardNumber, " +
+            "a.senderBalanceAfter, " +
+            "a.transactionType, " +
+            "a.senderATMModel.name, " +
+            "a.recipientCard.cardNumber, " +
+            "a.amount, " +
+            "a.recipientBalanceAfter, " +
+            "a.timestamp) " +
             "FROM TransactionModel a " +
-            "JOIN a.recipientCard acc " +
-            "WHERE acc.cardNumber = :cardNumber")
+            "WHERE a.senderCard.cardNumber = :cardNumber OR a.recipientCard.cardNumber = :cardNumber")
     List<TransactionDetailsDTO> findTransactionDetailsByCardNumber(@Param("cardNumber") String cardNumber);
 
 }
