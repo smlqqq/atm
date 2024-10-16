@@ -7,8 +7,6 @@ import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
 import com.alex.d.springbootatm.service.KafkaProducerService;
 import com.alex.d.springbootatm.service.ReportService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,12 +30,16 @@ public class ManagerController {
 
     @Autowired
     private KafkaProducerService kafkaProducerService;
+
     @Autowired
     private BankCardRepository bankCardRepository;
+
     @Autowired
     private ATMService atmService;
+
     @Autowired
     private ReportService reportService;
+
     @Autowired
     private Gson gson;
 
@@ -139,4 +141,5 @@ public class ManagerController {
     public ResponseEntity downloadDataByACardNumber(@PathVariable("cardNumber") String cardNumber) {
         return reportService.generateIndividualClientReport(cardNumber);
     }
+
 }

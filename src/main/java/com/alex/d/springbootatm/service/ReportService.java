@@ -3,7 +3,6 @@ package com.alex.d.springbootatm.service;
 import com.alex.d.springbootatm.dto.TransactionDetailsDTO;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.repository.BankCardRepository;
-import com.alex.d.springbootatm.response.ErrorResponse;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -24,10 +23,16 @@ import java.util.List;
 @Service
 public class ReportService {
 
+    private final String DATE_FORMAT = "dd.MM.yyyy | HH:mm:ss";
+
     @Autowired
     private BankCardRepository bankCardRepository;
+
     @Autowired
     private TransactionServiceImpl transactionService;
+
+    @Autowired
+    private DateTimeService dateTimeService;
 
 
     public ResponseEntity generateClientReport() {
@@ -37,20 +42,18 @@ public class ReportService {
             Sheet sheet = workbook.createSheet("Clients");
 
             Row createHeaderRow = sheet.createRow(0);
-            createHeaderRow.createCell(0).setCellValue("id");
-            createHeaderRow.createCell(1).setCellValue("card_number");
-            createHeaderRow.createCell(2).setCellValue("pin_number");
-            createHeaderRow.createCell(3).setCellValue("balance");
+            createHeaderRow.createCell(0).setCellValue("Card");
+            createHeaderRow.createCell(1).setCellValue("Pin");
+            createHeaderRow.createCell(2).setCellValue("Balance");
 
             List<BankCardModel> cards = bankCardRepository.findAll();
 
             int rowNum = 1;
             for (BankCardModel card : cards) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(card.getId());
-                row.createCell(1).setCellValue(card.getCardNumber());
-                row.createCell(2).setCellValue(card.getPinNumber());
-                row.createCell(3).setCellValue(String.valueOf(card.getBalance()));
+                row.createCell(0).setCellValue(card.getCardNumber());
+                row.createCell(1).setCellValue(card.getPinNumber());
+                row.createCell(2).setCellValue(String.valueOf(card.getBalance()));
             }
 
             Row getHeaderRow = sheet.getRow(0);
@@ -99,7 +102,7 @@ public class ReportService {
                     row.createCell(4).setCellValue(transaction.getRecipient());
                     row.createCell(5).setCellValue(String.valueOf(transaction.getAmount()));
                     row.createCell(6).setCellValue(String.valueOf(transaction.getRecipientBalance()));
-                    row.createCell(7).setCellValue(String.valueOf(transaction.getTimestamp()));
+                    row.createCell(7).setCellValue(dateTimeService.getFormatedDateTime(String.valueOf(transaction.getTimestamp()), DATE_FORMAT));
                 }
             }
 
