@@ -13,12 +13,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TransactionDetailsDTO {
 
-    private String cardNumber;
-    private BigDecimal amount;
     private String sender;
+    private BigDecimal senderBalance;
     private String transactionType;
+    private String atmName;
     private String recipient;
-    private BigDecimal balance;
+    private BigDecimal amount;
+    private BigDecimal recipientBalance;
     private LocalDateTime timestamp;
 
 }

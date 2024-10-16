@@ -49,6 +49,9 @@ public class AtmServiceImpl implements ATMService {
         // Update recipient's balance
         BigDecimal newRecipientBalance = recipientCard.get().getBalance().add(amount);
         recipientCard.get().setBalance(newRecipientBalance);
+        // Set balances after transaction in the transaction model
+        transactionModel.setSenderBalanceAfter(newSenderBalance);
+        transactionModel.setRecipientBalanceAfter(newRecipientBalance);
         // Save updated sender and recipient cards
         bankCardRepository.save(senderCard.get());
         bankCardRepository.save(recipientCard.get());
@@ -63,11 +66,12 @@ public class AtmServiceImpl implements ATMService {
         card.get().setBalance(newBalance);
         // Create a new transaction
         TransactionModel transactionModel = new TransactionModel();
-        transactionModel.setTransactionType("DEPOSIT_FROM_ATM");
+        transactionModel.setTransactionType("DEPOSIT_FROM");
         transactionModel.setAmount(amount);
         transactionModel.setTimestamp(LocalDateTime.now());
         transactionModel.setSenderATMModel(returnAtmName());
         transactionModel.setRecipientCard(card.get());
+        transactionModel.setRecipientBalanceAfter(newBalance);
         transactionRepository.save(transactionModel);
 
     }
@@ -81,7 +85,7 @@ public class AtmServiceImpl implements ATMService {
         card.get().setBalance(newBalance);
         // Create a new transaction
         TransactionModel transactionModel = new TransactionModel();
-        transactionModel.setTransactionType("WITHDRAW_FROM_ATM");
+        transactionModel.setTransactionType("WITHDRAW_FROM");
         transactionModel.setAmount(amount);
         transactionModel.setTimestamp(LocalDateTime.now());
         transactionModel.setSenderATMModel(returnAtmName());
