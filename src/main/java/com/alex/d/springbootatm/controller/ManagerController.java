@@ -9,12 +9,12 @@ import com.alex.d.springbootatm.service.KafkaProducerService;
 import com.alex.d.springbootatm.service.ReportService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1")
@@ -38,7 +39,7 @@ public class ManagerController {
     @Autowired
     private ReportService reportService;
     @Autowired
-    private ObjectMapper objectMapper;
+    private Gson gson;
 
 
     @Operation(
@@ -74,12 +75,8 @@ public class ManagerController {
         if (!cardNumber.isEmpty()) {
             atmService.deleteCardByNumber(cardNumber);
             log.info("Card with number {} was deleted", cardNumber);
-            try {
-                String message = objectMapper.writeValueAsString(cardNumber);
-                kafkaProducerService.sendMessage("manager-topic", message);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            String message = gson.toJson(cardNumber);
+            kafkaProducerService.sendMessage("manager-topic", message);
             return ResponseEntity.status(HttpStatus.OK).body(cardNumber);
         } else
 
@@ -104,13 +101,9 @@ public class ManagerController {
 
         BankCardDTO createdCard = atmService.createCard();
 
-        try {
-            String message = objectMapper.writeValueAsString(createdCard);
-            log.info("New card created: {}", createdCard.getCardNumber());
-            kafkaProducerService.sendMessage("manager-topic", message);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        String message = gson.toJson(createdCard);
+        log.info("New card created: {}", createdCard.getCardNumber());
+        kafkaProducerService.sendMessage("manager-topic", message);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
     }
