@@ -26,7 +26,7 @@ import java.time.Instant;
 @RestController
 @Slf4j
 @RequestMapping("/api/v1")
-@Tag(name = "Finance Transactions")
+@Tag(name = "Funds Transactions")
 public class TransactionController {
 
     @Autowired
