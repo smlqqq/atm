@@ -2,8 +2,7 @@ package com.alex.d.springbootatm.service;
 
 import com.alex.d.springbootatm.dto.BankCardDTO;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.kafka.KafkaProducerService;
-import com.alex.d.springbootatm.kafka.KafkaTopic;
+//import com.alex.d.springbootatm.kafka.KafkaTopic;
 import com.alex.d.springbootatm.model.AtmModel;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.model.TransactionModel;
@@ -34,10 +33,10 @@ public class AtmServiceImpl implements ATMService {
     private BankCardRepository bankCardRepository;
     @Autowired
     private ATMRepository atmRepository;
-    @Autowired
-    private Gson gson;
-    @Autowired
-    private KafkaProducerService kafkaProducerService;
+//    @Autowired
+//    private Gson gson;
+//    @Autowired
+//    private KafkaProducerService kafkaProducerService;
 
 
     @Override
@@ -69,13 +68,13 @@ public class AtmServiceImpl implements ATMService {
             log.info("{} of {} for card {} was successful. Balance: {}",
                     isDeposit ? "Deposit" : "Withdrawal", amount, cardNumber, cardBlance);
 
-            setKafkaProducerService(
-                    BankCardDTO.builder()
-                            .cardNumber(optCard.get().getCardNumber())
-                            .balance(cardBlance)
-                            .build(),
-                    KafkaTopic.ATM_TOPIC
-            );
+//            setKafkaProducerService(
+//                    BankCardDTO.builder()
+//                            .cardNumber(optCard.get().getCardNumber())
+//                            .balance(cardBlance)
+//                            .build(),
+//                    KafkaTopic.ATM_TOPIC
+//            );
             if (isDeposit) {
                 return new DepositResponse(cardNumber, cardBlance);
             } else {
@@ -149,12 +148,12 @@ public class AtmServiceImpl implements ATMService {
 
         log.info("Card saved into db {} pin code {}", cardModel.getCardNumber(), cardModel.getPinNumber());
 
-        setKafkaProducerService(
-                BankCardDTO.builder()
-                        .cardNumber(cardModel.getCardNumber())
-                        .pinCode(cardModel.getPinNumber())
-                        .build(),
-                KafkaTopic.KAFKA_MANAGER_TOPIC);
+//        setKafkaProducerService(
+//                BankCardDTO.builder()
+//                        .cardNumber(cardModel.getCardNumber())
+//                        .pinCode(cardModel.getPinNumber())
+//                        .build(),
+//                KafkaTopic.KAFKA_MANAGER_TOPIC);
 
         return bankCardRepository.save(cardModel);
     }
@@ -167,10 +166,11 @@ public class AtmServiceImpl implements ATMService {
         BankCardDTO bankCardDTO = BankCardDTO.builder()
                 .cardNumber(card.getCardNumber())
                 .pinCode(generatePinCode())
+                .balance(generateBalance())
                 .build();
 
-        log.info("Card and pin code info {} pin code {}", bankCardDTO.getCardNumber(), bankCardDTO.getPinCode());
-        setKafkaProducerService(bankCardDTO, KafkaTopic.KAFKA_MANAGER_TOPIC);
+        log.info("Card and pin code info {} pin code {} balance {}", bankCardDTO.getCardNumber(), bankCardDTO.getPinCode(), bankCardDTO.getBalance());
+//        setKafkaProducerService(bankCardDTO, KafkaTopic.KAFKA_MANAGER_TOPIC);
 
         return bankCardDTO;
     }
@@ -203,13 +203,13 @@ public class AtmServiceImpl implements ATMService {
             BigDecimal cardBalance = card.getBalance();
             log.info("Card: {} Balance: {}", cardNumber, cardBalance);
 
-            setKafkaProducerService(
-                    BankCardDTO.builder()
-                            .cardNumber(optCard.get().getCardNumber())
-                            .balance(cardBalance)
-                            .build(),
-                    KafkaTopic.ATM_TOPIC
-            );
+//            setKafkaProducerService(
+//                    BankCardDTO.builder()
+//                            .cardNumber(optCard.get().getCardNumber())
+//                            .balance(cardBalance)
+//                            .build(),
+//                    KafkaTopic.ATM_TOPIC
+//            );
 
             return new BalanceResponse(cardNumber, cardBalance);
         } else
@@ -258,9 +258,9 @@ public class AtmServiceImpl implements ATMService {
         return String.format("%04d", random.nextInt(10000));
     }
 
-    private void setKafkaProducerService(Object data, String topic) {
-        String message = gson.toJson(data);
-        kafkaProducerService.sendMessage(topic, message);
-    }
+//    private void setKafkaProducerService(Object data, String topic) {
+//        String message = gson.toJson(data);
+//        kafkaProducerService.sendMessage(topic, message);
+//    }
 
 }

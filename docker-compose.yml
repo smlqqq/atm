@@ -1,36 +1,36 @@
 version: '3.8'
 
 services:
-  zookeeper:
-    restart: always
-    container_name: kafka-like-zookeeper
-    image: docker.io/bitnami/zookeeper:3.8
-    ports:
-      - "2181:2181"
-    volumes:
-      - "zookeeper-volume:/bitnami"
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-
-  kafka:
-    restart: always
-    container_name: kafka-like
-    image: docker.io/bitnami/kafka:3.3
-    ports:
-      - "9092:9092"  # Для клиентских приложений
-      - "9094:9094"  # Для внешнего доступа
-    volumes:
-      - "kafka-volume:/bitnami"
-    environment:
-      - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9094
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
-    depends_on:
-      - zookeeper
+#  zookeeper:
+#    restart: always
+#    container_name: kafka-like-zookeeper
+#    image: docker.io/bitnami/zookeeper:3.8
+#    ports:
+#      - "2181:2181"
+#    volumes:
+#      - "zookeeper-volume:/bitnami"
+#    environment:
+#      - ALLOW_ANONYMOUS_LOGIN=yes
+#
+#  kafka:
+#    restart: always
+#    container_name: kafka-like
+#    image: docker.io/bitnami/kafka:3.3
+#    ports:
+#      - "9092:9092"  # Для клиентских приложений
+#      - "9094:9094"  # Для внешнего доступа
+#    volumes:
+#      - "kafka-volume:/bitnami"
+#    environment:
+#      - KAFKA_BROKER_ID=1
+#      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+#      - ALLOW_PLAINTEXT_LISTENER=yes
+#      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+#      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9094
+#      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9094
+#      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+#    depends_on:
+#      - zookeeper
 
   app:
     image: spring-boot-atm
@@ -51,7 +51,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       - postgres
-      - kafka
+#      - kafka
 
   postgres:
     image: postgres:13
@@ -67,5 +67,5 @@ services:
 
 volumes:
   postgres_data:
-  zookeeper-volume:
-  kafka-volume:
+#  zookeeper-volume:
+#  kafka-volume:
