@@ -16,7 +16,7 @@ public interface TransactionRepository extends JpaRepository<TransactionModel, L
             "a.senderCard.cardNumber, " +
             "a.senderBalanceAfter, " +
             "a.transactionType, " +
-            "a.senderATMModel.name, " +
+            "a.senderAtmModel.name, " +
             "a.recipientCard.cardNumber, " +
             "a.amount, " +
             "a.recipientBalanceAfter, " +

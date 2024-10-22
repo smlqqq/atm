@@ -1,12 +1,10 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.ATMService;
-import com.alex.d.springbootatm.service.KafkaProducerService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -33,13 +30,7 @@ import java.util.Optional;
 public class TransactionController {
 
     @Autowired
-    private BankCardRepository bankCardRepository;
-    @Autowired
     private ATMService atmService;
-    @Autowired //TODO ПЕРЕДЕЛАТЬ СООБЩЕНИЯ ДЛЯ КАФКИ
-    private KafkaProducerService kafkaProducerService;
-    @Autowired
-    private ObjectMapper objectMapper;
 
 
     @PostMapping("/transfer")
@@ -56,46 +47,44 @@ public class TransactionController {
                     })
             }
     )
-    public ResponseEntity transferFunds(
+    public ResponseEntity transferFundsToAnotherCard(
             @Parameter(description = "Sender card number", required = true) @RequestParam("senderCardNumber") String senderCardNumber,
             @Parameter(description = "Recipient card number", required = true) @RequestParam("recipientCardNumber") String recipientCardNumber,
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
     ) {
 
-        Optional<BankCardModel> senderCard = bankCardRepository.findByCardNumber(senderCardNumber);
-        Optional<BankCardModel> recipientCard = bankCardRepository.findByCardNumber(recipientCardNumber);
-
-        if (senderCard.isEmpty()) {
-            log.error("Sender card not found {}", senderCardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Sender card not found", "/transfer/" + senderCardNumber);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        } else if (recipientCard.isEmpty()) {
-            log.error("Recipient card not found {}", recipientCardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Recipient card not found", "/transfer/" + recipientCardNumber);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-        }
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            log.error("Invalid transfer amount: {}", amount);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Invalid deposit amount", "/transfer/" + amount);
+            log.error("Invalid deposit amount: {}", amount);
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400",
+                    "Invalid transfer amount",
+                    "/transfer/" + amount);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
-        BigDecimal senderBalance = senderCard.get().getBalance();
+        BigDecimal senderBalance = atmService.checkBalanceByCardNumber(senderCardNumber).getBalance();
 
         if (senderBalance.compareTo(amount) < 0) {
+
             log.error("Insufficient funds on sender's card: {}", senderBalance);
+
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Insufficient funds on sender's card", "/transfer/" + senderBalance);
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
-        BigDecimal recipientBalance = recipientCard.get().getBalance();
+        try {
+            TransferResponse transferResponse = atmService.sendTransaction(senderCardNumber, recipientCardNumber, amount);
+            log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
+            return ResponseEntity.status(HttpStatus.OK).body(transferResponse);
+        } catch (CardNotFoundException e) {
 
-        atmService.sendTransaction(senderCard, recipientCard, amount);
-        log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
-        TransferResponse response = new TransferResponse(senderCardNumber, recipientCardNumber, amount, senderBalance.subtract(amount), recipientBalance.add(amount));
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404",
+                    "Card not found",
+                    "/transfer/");
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 }
 

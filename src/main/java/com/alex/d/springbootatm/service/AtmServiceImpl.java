@@ -1,13 +1,17 @@
 package com.alex.d.springbootatm.service;
 
 import com.alex.d.springbootatm.dto.BankCardDTO;
-import com.alex.d.springbootatm.model.ATMModel;
+import com.alex.d.springbootatm.exception.CardNotFoundException;
+import com.alex.d.springbootatm.kafka.KafkaProducerService;
+import com.alex.d.springbootatm.kafka.KafkaTopic;
+import com.alex.d.springbootatm.model.AtmModel;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.model.TransactionModel;
 import com.alex.d.springbootatm.repository.ATMRepository;
 import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.alex.d.springbootatm.response.*;
+import com.google.gson.Gson;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Random;
 
@@ -31,90 +34,147 @@ public class AtmServiceImpl implements ATMService {
     private BankCardRepository bankCardRepository;
     @Autowired
     private ATMRepository atmRepository;
+    @Autowired
+    private Gson gson;
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
+
 
     @Override
-    @Transactional
-    public void sendTransaction(Optional<BankCardModel> senderCard, Optional<BankCardModel> recipientCard, BigDecimal amount) {
-        // Create a new transaction
-        TransactionModel transactionModel = new TransactionModel();
-        transactionModel.setTransactionType("SEND");
-        transactionModel.setAmount(amount);
-        transactionModel.setTimestamp(LocalDateTime.now());
-        transactionModel.setSenderCard(senderCard.get());
-        transactionModel.setRecipientCard(recipientCard.get());
-        transactionRepository.save(transactionModel);
-        // Update sender's balance
-        BigDecimal newSenderBalance = senderCard.get().getBalance().subtract(amount);
-        senderCard.get().setBalance(newSenderBalance);
-        // Update recipient's balance
-        BigDecimal newRecipientBalance = recipientCard.get().getBalance().add(amount);
-        recipientCard.get().setBalance(newRecipientBalance);
-        // Set balances after transaction in the transaction model
-        transactionModel.setSenderBalanceAfter(newSenderBalance);
-        transactionModel.setRecipientBalanceAfter(newRecipientBalance);
-        // Save updated sender and recipient cards
-        bankCardRepository.save(senderCard.get());
-        bankCardRepository.save(recipientCard.get());
+    public TransactionResponse processTransaction(String cardNumber, BigDecimal amount, boolean isDeposit) {
+        Optional<BankCardModel> optCard = bankCardRepository.findByCardNumber(cardNumber);
 
+        if (optCard.isPresent()) {
+            BankCardModel card = optCard.get();
+
+            BigDecimal cardBlance = isDeposit
+                    ? card.getBalance().add(amount)
+                    : card.getBalance().subtract(amount);
+
+            card.setBalance(cardBlance);
+
+            String transactionType = isDeposit ? "DEPOSIT_FROM" : "WITHDRAW";
+            TransactionModel transactionModel = TransactionModel.builder()
+                    .transactionType(transactionType)
+                    .amount(amount)
+                    .timestamp(LocalDateTime.now())
+                    .senderAtmModel(returnAtmName())
+                    .recipientCard(card)
+                    .recipientBalanceAfter(cardBlance)
+                    .build();
+
+            // Сохраняем транзакцию
+            transactionRepository.save(transactionModel);
+
+            log.info("{} of {} for card {} was successful. Balance: {}",
+                    isDeposit ? "Deposit" : "Withdrawal", amount, cardNumber, cardBlance);
+
+            setKafkaProducerService(
+                    BankCardDTO.builder()
+                            .cardNumber(optCard.get().getCardNumber())
+                            .balance(cardBlance)
+                            .build(),
+                    KafkaTopic.ATM_TOPIC
+            );
+            if (isDeposit) {
+                return new DepositResponse(cardNumber, cardBlance);
+            } else {
+                return new WithdrawResponse(cardNumber, amount, cardBlance);
+            }
+        } else {
+            log.warn("Attempted {} for non-existing card: {}", isDeposit ? "deposit" : "withdrawal", cardNumber);
+            throw new CardNotFoundException("Card not found with number: " + cardNumber);
+        }
     }
 
     @Override
     @Transactional
-    public void depositCashFromATM(Optional<BankCardModel> card, BigDecimal amount) {
-        // Increase balance
-        BigDecimal newBalance = card.get().getBalance().add(amount);
-        card.get().setBalance(newBalance);
-        // Create a new transaction
-        TransactionModel transactionModel = new TransactionModel();
-        transactionModel.setTransactionType("DEPOSIT_FROM");
-        transactionModel.setAmount(amount);
-        transactionModel.setTimestamp(LocalDateTime.now());
-        transactionModel.setSenderATMModel(returnAtmName());
-        transactionModel.setRecipientCard(card.get());
-        transactionModel.setRecipientBalanceAfter(newBalance);
-        transactionRepository.save(transactionModel);
+    public TransferResponse sendTransaction(String senderCard, String recipientCard, BigDecimal amount) {
 
-    }
+        Optional<BankCardModel> optSenderCard = bankCardRepository.findByCardNumber(senderCard);
+        Optional<BankCardModel> optRecipientCard = bankCardRepository.findByCardNumber(recipientCard);
 
+        if (optSenderCard.isPresent() && optRecipientCard.isPresent()) {
+            // Update sender's balance
+            BigDecimal newSenderBalance = optSenderCard.get().getBalance().subtract(amount);
+            optSenderCard.get().setBalance(newSenderBalance);
+            // Update recipient's balance
+            BigDecimal newRecipientBalance = optRecipientCard.get().getBalance().add(amount);
+            optRecipientCard.get().setBalance(newRecipientBalance);
+            // Create a new transaction
+            TransactionModel transactionModel = TransactionModel.builder()
+                    .transactionType("SEND")
+                    .amount(amount)
+                    .timestamp(LocalDateTime.now())
+                    .senderCard(optSenderCard.get())
+                    .recipientCard(optRecipientCard.get())
+                    // Set balances after transaction in the transaction model
+                    .senderBalanceAfter(newSenderBalance)
+                    .recipientBalanceAfter(newRecipientBalance)
+                    .build();
 
-    @Override
-    @Transactional
-    public void withdrawFromATM(Optional<BankCardModel> card, BigDecimal amount) {
-        // Decrease balance
-        BigDecimal newBalance = card.get().getBalance().subtract(amount);
-        card.get().setBalance(newBalance);
-        // Create a new transaction
-        TransactionModel transactionModel = new TransactionModel();
-        transactionModel.setTransactionType("WITHDRAW_FROM");
-        transactionModel.setAmount(amount);
-        transactionModel.setTimestamp(LocalDateTime.now());
-        transactionModel.setSenderATMModel(returnAtmName());
-        transactionModel.setRecipientCard(card.get());
-        transactionRepository.save(transactionModel);
+            transactionRepository.save(transactionModel);
+            // Save updated sender and recipient cards
+            bankCardRepository.save(optSenderCard.get());
+            bankCardRepository.save(optRecipientCard.get());
+            log.info("Transaction completed: Sender card {} balance {}, Recipient card {} balance {}, Amount {}",
+                    optSenderCard.get().getCardNumber(), newSenderBalance, optRecipientCard.get().getCardNumber(), newRecipientBalance, amount);
 
+            return new TransferResponse(senderCard, recipientCard, amount, newSenderBalance, newRecipientBalance);
+        } else {
+
+            if (optSenderCard.isEmpty()) {
+                log.warn("Sender card not found: {}", senderCard);
+                throw new CardNotFoundException("Sender card not found with number: " + senderCard);
+            }
+
+            if (optRecipientCard.isEmpty()) {
+                log.warn("Recipient card not found: {}", recipientCard);
+                throw new CardNotFoundException("Recipient card not found with number: " + recipientCard);
+            }
+        }
+
+        return null;
     }
 
     @Override
     @Transactional
     public BankCardModel saveCreatedCardToDB() {
-        BankCardModel card = new BankCardModel();
-        card.setCardNumber(generateCreditCardNumber());
-        card.setPinNumber(hashPinCode(generatePinCode()));
-        log.info("Card saved into db {} pin code {}", card.getCardNumber(), card.getPinNumber());
-        card.setBalance(generateBalance());
-        return bankCardRepository.save(card);
+
+        BankCardModel cardModel = BankCardModel.builder()
+                .cardNumber(generateCreditCardNumber())
+                .pinNumber(hashPinCode(generatePinCode()))
+                .balance(generateBalance())
+                .build();
+
+        log.info("Card saved into db {} pin code {}", cardModel.getCardNumber(), cardModel.getPinNumber());
+
+        setKafkaProducerService(
+                BankCardDTO.builder()
+                        .cardNumber(cardModel.getCardNumber())
+                        .pinCode(cardModel.getPinNumber())
+                        .build(),
+                KafkaTopic.KAFKA_MANAGER_TOPIC);
+
+        return bankCardRepository.save(cardModel);
     }
 
     @Override
     public BankCardDTO createCard() {
-        BankCardDTO responseDto = new BankCardDTO();
+
         BankCardModel card = saveCreatedCardToDB();
-        responseDto.setCardNumber(card.getCardNumber());
-        responseDto.setPinCode(generatePinCode());
-        log.info("Card and pincode info {} pin code {}", responseDto.getCardNumber(), responseDto.getPinCode());
-        responseDto.setBalance(card.getBalance());
-        return responseDto;
+
+        BankCardDTO bankCardDTO = BankCardDTO.builder()
+                .cardNumber(card.getCardNumber())
+                .pinCode(generatePinCode())
+                .build();
+
+        log.info("Card and pin code info {} pin code {}", bankCardDTO.getCardNumber(), bankCardDTO.getPinCode());
+        setKafkaProducerService(bankCardDTO, KafkaTopic.KAFKA_MANAGER_TOPIC);
+
+        return bankCardDTO;
     }
+
 
     @Override
     public String generateCreditCardNumber() {
@@ -134,32 +194,50 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
-    public BigDecimal checkBalanceByCardNumber(String cardNumber) {
-        Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card.isPresent()) {
-            return card.get().getBalance();
+    public BalanceResponse checkBalanceByCardNumber(String cardNumber) {
+
+        Optional<BankCardModel> optCard = bankCardRepository.findByCardNumber(cardNumber);
+
+        if (optCard.isPresent()) {
+            BankCardModel card = optCard.get();
+            BigDecimal cardBalance = card.getBalance();
+            log.info("Card: {} Balance: {}", cardNumber, cardBalance);
+
+            setKafkaProducerService(
+                    BankCardDTO.builder()
+                            .cardNumber(optCard.get().getCardNumber())
+                            .balance(cardBalance)
+                            .build(),
+                    KafkaTopic.ATM_TOPIC
+            );
+
+            return new BalanceResponse(cardNumber, cardBalance);
         } else
-            throw new NoSuchElementException("Card not found with number: " + cardNumber);
+            throw new CardNotFoundException("Card not found: " + cardNumber);
+
     }
 
     @Override
     @Transactional
-    public Optional<BankCardModel> deleteCardByNumber(String cardNumber) {
-        Optional<BankCardModel> card = bankCardRepository.findByCardNumber(cardNumber);
-        if (card.isPresent()) {
-            bankCardRepository.delete(card.get());
-            return card;
+    public BankCardModel deleteCardByNumber(String cardNumber) {
+
+        Optional<BankCardModel> optCard = bankCardRepository.findByCardNumber(cardNumber);
+
+        if (optCard.isPresent()) {
+            bankCardRepository.delete(optCard.get());
+            return optCard.get();
         } else {
-            throw new EntityNotFoundException("Card not found " + cardNumber);
+            log.error("Card {} not exist", cardNumber);
+            throw new CardNotFoundException("Card not found with number: " + cardNumber);
         }
     }
 
     @Override
-    public ATMModel returnAtmName() {
+    public AtmModel returnAtmName() {
         Random random = new Random();
-        List<ATMModel> allATMModelNames = atmRepository.findAll();
-        int randomIndex = random.nextInt(allATMModelNames.size());
-        return allATMModelNames.get(randomIndex);
+        List<AtmModel> allAtmModelNames = atmRepository.findAll();
+        int randomIndex = random.nextInt(allAtmModelNames.size());
+        return allAtmModelNames.get(randomIndex);
     }
 
     @Override
@@ -169,9 +247,20 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
+    public Optional<List<BankCardModel>> getAllCards() {
+        List<BankCardModel> cards = bankCardRepository.findAll();
+        return cards.isEmpty() ? Optional.empty() : Optional.of(cards);
+    }
+
+    @Override
     public String generatePinCode() {
         Random random = new Random();
         return String.format("%04d", random.nextInt(10000));
+    }
+
+    private void setKafkaProducerService(Object data, String topic) {
+        String message = gson.toJson(data);
+        kafkaProducerService.sendMessage(topic, message);
     }
 
 }

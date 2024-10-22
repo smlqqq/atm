@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "atm_transactions")
 @JsonTypeName("Transaction")
 public class TransactionModel {
@@ -30,24 +32,23 @@ public class TransactionModel {
     private LocalDateTime timestamp;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference
     @JoinColumn(name = "sender", referencedColumnName = "card_number")
     private BankCardModel senderCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference
     @JoinColumn(name = "recipient", referencedColumnName = "card_number")
     private BankCardModel recipientCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "atm_name", referencedColumnName = "name")
-    private ATMModel senderATMModel;
+    private AtmModel senderAtmModel;
 
     @Column(name = "sender_balance", nullable = true)
     private BigDecimal senderBalanceAfter;
 
     @Column(name = "recipient_balance", nullable = true)
     private BigDecimal recipientBalanceAfter;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    private BankCardModel bankCardModel;
 
 }
