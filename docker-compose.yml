@@ -39,9 +39,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: ${DB_URL}${DB_SCHEMA}
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_URL: ${spring.datasource.url}
+      SPRING_DATASOURCE_USERNAME: ${spring.datasource.username}
+      SPRING_DATASOURCE_PASSWORD: ${spring.datasource.password}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
@@ -57,9 +57,9 @@ services:
     image: postgres:13
     container_name: postgres
     environment:
-      POSTGRES_DB: ${DB_SCHEMA}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${spring.datasource.url}
+      POSTGRES_USER: ${spring.datasource.username}
+      POSTGRES_PASSWORD: ${spring.datasource.password}
     ports:
       - "5432:5432"
     volumes:

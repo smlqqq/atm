@@ -10,9 +10,10 @@ public class SpringBootAtmApplication {
     public static void main(String[] args) {
 
         Dotenv dotenv = Dotenv.load();
-        System.setProperty("LOCAL_DATABASE_URL", dotenv.get("LOCAL_DATABASE_URL"));
-        System.setProperty("LOCAL_DATABASE_USERNAME", dotenv.get("LOCAL_DATABASE_USERNAME"));
-        System.setProperty("LOCAL_DATABASE_PASSWORD", dotenv.get("LOCAL_DATABASE_PASSWORD"));
+        System.setProperty("DB_URL", dotenv.get("DB_URL"));
+        System.setProperty("DB_SCHEMA", dotenv.get("DB_SCHEMA"));
+        System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
+        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
 
         SpringApplication.run(SpringBootAtmApplication.class, args);
     }
