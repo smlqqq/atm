@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1")
-@Tag(name = "Manager")
+@Tag(name = "Cards managment")
 public class ManagerController {
 
     @Autowired

@@ -22,7 +22,7 @@ import java.time.Instant;
 @Controller
 @Slf4j
 @RequestMapping("/api/v1")
-@Tag(name = "Bank card")
+@Tag(name = "Funds Managemen")
 public class AtmController {
 
     @Autowired
