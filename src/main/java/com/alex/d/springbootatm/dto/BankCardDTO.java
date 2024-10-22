@@ -1,18 +1,26 @@
 package com.alex.d.springbootatm.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class BankCardDTO {
+
     private String cardNumber;
-    private String pinCode; // Regular 4-pin code
+    private String pinCode;
     private BigDecimal balance;
+
+
+    public BankCardDTO(String cardNumber, BigDecimal balance) {
+        this.cardNumber = cardNumber;
+        this.balance = balance;
+    }
+
+
 }
+

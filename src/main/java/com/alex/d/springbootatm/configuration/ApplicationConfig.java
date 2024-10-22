@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SpringDocConfiguration {
+public class ApplicationConfig {
 
     @Bean(name = "org.OpenSolaris.configuration.SpringDocConfiguration.apiInfo")
     OpenAPI apiInfo() {

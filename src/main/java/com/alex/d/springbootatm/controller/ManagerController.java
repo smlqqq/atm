@@ -1,9 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.dto.BankCardDTO;
-import com.alex.d.springbootatm.service.KafkaProducerService;
+import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
-import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ATMService;
 import com.alex.d.springbootatm.service.ReportService;
@@ -16,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -29,11 +26,8 @@ import java.util.List;
 public class ManagerController {
 
     @Autowired
-    private KafkaProducerService kafkaProducerService;
-    @Autowired
-    private BankCardRepository bankCardRepository;
-    @Autowired
     private ATMService atmService;
+
     @Autowired
     private ReportService reportService;
 
@@ -47,10 +41,11 @@ public class ManagerController {
                     })
             }
     )
-    @GetMapping("/cards")
-    public ResponseEntity<List<BankCardModel>> getAllCards() {
-        List<BankCardModel> cards = bankCardRepository.findAll();
-        return ResponseEntity.status(HttpStatus.OK).body(cards);
+    @GetMapping("/bank-cards")
+    public ResponseEntity<List<BankCardModel>> getAllBankCards() {
+        return atmService.getAllCards()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @Operation(
@@ -65,19 +60,22 @@ public class ManagerController {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
             }
     )
-    @DeleteMapping("/delete/{cardNumber}")
+    @DeleteMapping("/deleteCard/{cardNumber}")
     public ResponseEntity deleteCard(@PathVariable("cardNumber") String cardNumber) {
-        
-        if (!cardNumber.isEmpty()) {
-                atmService.deleteCardByNumber(cardNumber);
-                log.info("Card with number {} was deleted", cardNumber);
-                kafkaProducerService.sendMessage("atm-topic", "Card with number " + cardNumber + " was deleted");
-                return ResponseEntity.status(HttpStatus.OK).body(cardNumber);
-        } else
 
+        if (cardNumber == null || cardNumber.trim().isEmpty()) {
             log.error("Invalid credit card number {}", cardNumber);
-        ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Card number cannot be null or empty");
+        }
+
+        try {
+            atmService.deleteCardByNumber(cardNumber);
+            return ResponseEntity.status(HttpStatus.OK).body("Card with number " + cardNumber + " was deleted");
+        } catch (CardNotFoundException e) {
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
     }
 
     @Operation(
@@ -91,12 +89,9 @@ public class ManagerController {
 
     )
 
-    @PostMapping("/card")
+    @PostMapping("/createCard")
     public ResponseEntity createNewCard() {
-        BankCardDTO createdCard = atmService.createCard();
-        log.info("New card created: {}", createdCard.getCardNumber());
-        kafkaProducerService.sendMessage("atm-topic", "New card created: " + createdCard.getCardNumber() + " " + createdCard.getPinCode());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
+        return ResponseEntity.status(HttpStatus.CREATED).body(atmService.createCard());
     }
 
 
@@ -110,8 +105,8 @@ public class ManagerController {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
             }
     )
-    @GetMapping("/download")
-    public ResponseEntity downloadFile() {
+    @GetMapping("/bank-cards/export/excel")
+    public ResponseEntity exportAllBankCardsReportToExcel() {
         return reportService.generateClientReport();
     }
 
@@ -126,8 +121,9 @@ public class ManagerController {
             }
     )
 
-    @GetMapping("/download/{cardNumber}")
-    public ResponseEntity downloadDataByACardNumber(@PathVariable("cardNumber") String cardNumber) {
+    @GetMapping("/bank-cards/export/excel/{cardNumber}")
+    public ResponseEntity exportIndividualClientReportToExcel(@PathVariable("cardNumber") String cardNumber) {
         return reportService.generateIndividualClientReport(cardNumber);
     }
+
 }
