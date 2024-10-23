@@ -3,7 +3,7 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.response.ErrorResponse;
-import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.AtmService;
 import com.alex.d.springbootatm.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +26,7 @@ import java.util.List;
 public class ManagerController {
 
     @Autowired
-    private ATMService atmService;
+    private AtmService atmService;
 
     @Autowired
     private ReportService reportService;

@@ -16,7 +16,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Table(name = "atm_accounts")
-@JsonTypeName("Bank card")
+@JsonTypeName("Card")
 public class BankCardModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

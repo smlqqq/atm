@@ -36,7 +36,7 @@ public class ReportService {
 
 
     public ResponseEntity generateClientReport() {
-        String fileName = "report.xlsx";
+        String fileName = "Report.xlsx";
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Clients");

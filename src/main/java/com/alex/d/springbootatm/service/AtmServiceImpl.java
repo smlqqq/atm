@@ -26,7 +26,7 @@ import java.util.Random;
 
 @Slf4j
 @Service
-public class AtmServiceImpl implements ATMService {
+public class AtmServiceImpl implements AtmService {
 
     @Autowired
     private TransactionRepository transactionRepository;

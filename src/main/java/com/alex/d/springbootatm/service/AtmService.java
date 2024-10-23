@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-public interface ATMService {
+public interface AtmService {
 
     TransferResponse sendTransaction(String senderCard, String recipientCard, BigDecimal amount);
 

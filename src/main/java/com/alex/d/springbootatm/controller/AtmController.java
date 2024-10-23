@@ -2,7 +2,7 @@ package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.response.*;
-import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +26,7 @@ import java.time.Instant;
 public class AtmController {
 
     @Autowired
-    private ATMService atmService;
+    private AtmService atmService;
 
     @Operation(
             summary = "Get account balance.",
@@ -45,11 +45,20 @@ public class AtmController {
     public ResponseEntity getBalance(@PathVariable String cardNumber) {
 
         try {
+
             BalanceResponse response = atmService.checkBalanceByCardNumber(cardNumber);
+
             return ResponseEntity.ok(response);
+
         } catch (CardNotFoundException e) {
+
             log.error("Card not found for number: {}", cardNumber);
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/balance/" + cardNumber);
+
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(),
+                    "404",
+                    "Card not found",
+                    "/balance/" + cardNumber);
+
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
