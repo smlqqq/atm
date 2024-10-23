@@ -4,6 +4,7 @@ import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.AtmService;
+import com.alex.d.springbootatm.service.ManagerServiceimpl;
 import com.alex.d.springbootatm.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +27,7 @@ import java.util.List;
 public class ManagerController {
 
     @Autowired
-    private AtmService atmService;
+    private ManagerServiceimpl managerServiceimpl;
 
     @Autowired
     private ReportService reportService;
@@ -43,7 +44,7 @@ public class ManagerController {
     )
     @GetMapping("/bank-cards")
     public ResponseEntity<List<BankCardModel>> getAllBankCards() {
-        return atmService.getAllCards()
+        return managerServiceimpl.getAllCards()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -69,7 +70,7 @@ public class ManagerController {
         }
 
         try {
-            atmService.deleteCardByNumber(cardNumber);
+            managerServiceimpl.deleteCardByNumber(cardNumber);
             return ResponseEntity.status(HttpStatus.OK).body("Card with number " + cardNumber + " was deleted");
         } catch (CardNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
@@ -91,7 +92,7 @@ public class ManagerController {
 
     @PostMapping("/createCard")
     public ResponseEntity createNewCard() {
-        return ResponseEntity.status(HttpStatus.CREATED).body(atmService.createCard());
+        return ResponseEntity.status(HttpStatus.CREATED).body(managerServiceimpl.createCard());
     }
 
 

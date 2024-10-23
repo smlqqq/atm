@@ -13,8 +13,6 @@ public interface AtmService {
 
     TransferResponse sendTransaction(String senderCard, String recipientCard, BigDecimal amount);
 
-    BankCardDTO createCard();
-
     BankCardModel saveCreatedCardToDB();
 
     String generatePinCode();
@@ -25,13 +23,9 @@ public interface AtmService {
 
     BalanceResponse checkBalanceByCardNumber(String cardNumber);
 
-    BankCardModel deleteCardByNumber(String cardNumber);
-
     AtmModel returnAtmName();
 
     String hashPinCode(String password);
-
-    Optional<List<BankCardModel>> getAllCards();
 
     TransactionResponse processTransaction(String cardNumber, BigDecimal amount, boolean isDeposit);
 
