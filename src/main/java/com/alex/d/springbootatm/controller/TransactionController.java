@@ -1,10 +1,9 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.repository.BankCardRepository;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.response.TransferResponse;
-import com.alex.d.springbootatm.service.ATMService;
+import com.alex.d.springbootatm.service.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,7 +29,7 @@ import java.time.Instant;
 public class TransactionController {
 
     @Autowired
-    private ATMService atmService;
+    private AtmService atmService;
 
 
     @PostMapping("/transfer")
@@ -62,28 +61,23 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
 
-        BigDecimal senderBalance = atmService.checkBalanceByCardNumber(senderCardNumber).getBalance();
 
-        if (senderBalance.compareTo(amount) < 0) {
-
-            log.error("Insufficient funds on sender's card: {}", senderBalance);
-
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "400", "Insufficient funds on sender's card", "/transfer/" + senderBalance);
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        if (atmService.checkBalanceByCardNumber(senderCardNumber).getBalance().compareTo(amount) < 0) {
+            log.error("Insufficient funds on card:");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(Instant.now(),
+                    "400",
+                    "Insufficient funds on card",
+                    "/transfer/" + senderCardNumber));
         }
 
         try {
-            TransferResponse transferResponse = atmService.sendTransaction(senderCardNumber, recipientCardNumber, amount);
             log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
-            return ResponseEntity.status(HttpStatus.OK).body(transferResponse);
+            return ResponseEntity.status(HttpStatus.OK).body(atmService.sendTransaction(senderCardNumber, recipientCardNumber, amount));
         } catch (CardNotFoundException e) {
 
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404",
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(Instant.now(), "404",
                     "Card not found",
-                    "/transfer/");
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                    "/transfer/"));
         }
     }
 }

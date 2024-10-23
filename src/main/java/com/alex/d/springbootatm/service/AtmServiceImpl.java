@@ -26,7 +26,7 @@ import java.util.Random;
 
 @Slf4j
 @Service
-public class AtmServiceImpl implements ATMService {
+public class AtmServiceImpl implements AtmService {
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -160,23 +160,6 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
-    public BankCardDTO createCard() {
-
-        BankCardModel card = saveCreatedCardToDB();
-
-        BankCardDTO bankCardDTO = BankCardDTO.builder()
-                .cardNumber(card.getCardNumber())
-                .pinCode(generatePinCode())
-                .build();
-
-        log.info("Card and pin code info {} pin code {}", bankCardDTO.getCardNumber(), bankCardDTO.getPinCode());
-        setKafkaProducerService(bankCardDTO, KafkaTopic.KAFKA_MANAGER_TOPIC);
-
-        return bankCardDTO;
-    }
-
-
-    @Override
     public String generateCreditCardNumber() {
         StringBuilder sb = new StringBuilder("400000");
         for (int i = 1; i < 10; i++) {
@@ -217,20 +200,6 @@ public class AtmServiceImpl implements ATMService {
 
     }
 
-    @Override
-    @Transactional
-    public BankCardModel deleteCardByNumber(String cardNumber) {
-
-        Optional<BankCardModel> optCard = bankCardRepository.findByCardNumber(cardNumber);
-
-        if (optCard.isPresent()) {
-            bankCardRepository.delete(optCard.get());
-            return optCard.get();
-        } else {
-            log.error("Card {} not exist", cardNumber);
-            throw new CardNotFoundException("Card not found with number: " + cardNumber);
-        }
-    }
 
     @Override
     public AtmModel returnAtmName() {
@@ -247,18 +216,12 @@ public class AtmServiceImpl implements ATMService {
     }
 
     @Override
-    public Optional<List<BankCardModel>> getAllCards() {
-        List<BankCardModel> cards = bankCardRepository.findAll();
-        return cards.isEmpty() ? Optional.empty() : Optional.of(cards);
-    }
-
-    @Override
     public String generatePinCode() {
         Random random = new Random();
         return String.format("%04d", random.nextInt(10000));
     }
 
-    private void setKafkaProducerService(Object data, String topic) {
+    public void setKafkaProducerService(Object data, String topic) {
         String message = gson.toJson(data);
         kafkaProducerService.sendMessage(topic, message);
     }

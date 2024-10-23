@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class ReportService {
@@ -34,9 +36,11 @@ public class ReportService {
     @Autowired
     private DateTimeService dateTimeService;
 
+    @Autowired
+    private ManagerServiceimpl managerServiceimpl;
 
     public ResponseEntity generateClientReport() {
-        String fileName = "report.xlsx";
+        String fileName = "Report.xlsx";
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Clients");
@@ -46,10 +50,10 @@ public class ReportService {
             createHeaderRow.createCell(1).setCellValue("Pin");
             createHeaderRow.createCell(2).setCellValue("Balance");
 
-            List<BankCardModel> cards = bankCardRepository.findAll();
+            Optional<List<BankCardModel>> cards = managerServiceimpl.getAllCards();
 
             int rowNum = 1;
-            for (BankCardModel card : cards) {
+            for (BankCardModel card : Objects.requireNonNull(cards.orElse(null))) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(card.getCardNumber());
                 row.createCell(1).setCellValue(card.getPinNumber());
