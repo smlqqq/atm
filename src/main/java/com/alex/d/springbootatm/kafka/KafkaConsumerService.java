@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm.kafka;
 
-import com.alex.d.springbootatm.dto.BankCardDTO;
+import com.alex.d.springbootatm.dto.CardDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,17 +29,17 @@ public class KafkaConsumerService {
         try {
             switch (topic) {
                 case "manager-topic":
-                    BankCardDTO managerCardDto = objectMapper.readValue(message, BankCardDTO.class);
+                    CardDto managerCardDto = objectMapper.readValue(message, CardDto.class);
                     objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
                     log.info("Kafka message from managerController: {}", objectMapper.writeValueAsString(managerCardDto));
                     break;
                 case "transaction-topic":
-                    BankCardDTO transactionSenderCardDto = objectMapper.readValue(message, BankCardDTO.class);
-                    BankCardDTO transactionrecipientCardDto = objectMapper.readValue(message, BankCardDTO.class);
+                    CardDto transactionSenderCardDto = objectMapper.readValue(message, CardDto.class);
+                    CardDto transactionrecipientCardDto = objectMapper.readValue(message, CardDto.class);
                     objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
                     log.info("Kafka message from transactionController: {} {}", objectMapper.writeValueAsString(transactionSenderCardDto), objectMapper.writeValueAsString(transactionrecipientCardDto));
                 case "atm-topic":
-                    BankCardDTO atmCardDto  = objectMapper.readValue(message, BankCardDTO.class);
+                    CardDto atmCardDto  = objectMapper.readValue(message, CardDto.class);
                     objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
                     log.info("Kafka message from atmController: {}", objectMapper.writeValueAsString(atmCardDto));
                     break;

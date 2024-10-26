@@ -42,7 +42,7 @@ public class ManagerController {
                     })
             }
     )
-    @GetMapping("/bank-cards")
+    @GetMapping("/bank-cards/getAll")
     public ResponseEntity<List<BankCardModel>> getAllBankCards() {
         return managerServiceimpl.getAllCards()
                 .map(ResponseEntity::ok)
