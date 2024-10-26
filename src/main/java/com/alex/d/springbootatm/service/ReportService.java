@@ -37,7 +37,7 @@ public class ReportService {
     private DateTimeService dateTimeService;
 
     @Autowired
-    private ManagerServiceimpl managerServiceimpl;
+    private ManagerService managerService;
 
     public ResponseEntity generateClientReport() {
         String fileName = "Report.xlsx";
@@ -50,10 +50,10 @@ public class ReportService {
             createHeaderRow.createCell(1).setCellValue("Pin");
             createHeaderRow.createCell(2).setCellValue("Balance");
 
-            Optional<List<BankCardModel>> cards = managerServiceimpl.getAllCards();
+            List<BankCardModel> cards = managerService.getAllCards();
 
             int rowNum = 1;
-            for (BankCardModel card : Objects.requireNonNull(cards.orElse(null))) {
+            for (BankCardModel card : cards) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(card.getCardNumber());
                 row.createCell(1).setCellValue(card.getPinNumber());

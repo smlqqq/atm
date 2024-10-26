@@ -11,7 +11,6 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Schema(description = "Error response")
 public class ErrorResponse {
 
