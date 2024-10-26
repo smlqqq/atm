@@ -11,7 +11,7 @@ import java.util.Optional;
 @Service
 public interface ManagerService {
 
-    Optional<List<BankCardModel>> getAllCards();
+    List<BankCardModel> getAllCards();
 
     BankCardModel deleteCardByNumber(String cardNumber);
 

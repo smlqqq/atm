@@ -40,6 +40,7 @@ public class AtmServiceImpl implements AtmService {
                 .orElseThrow(() -> new CardNotFoundException("Card not found" + card));
     }
 
+    @Override
     public String fetchCardNumberAsString(String card) {
         return cardRepository.findByCardNumber(card)
                 .map(BankCardModel::getCardNumber)
@@ -84,7 +85,7 @@ public class AtmServiceImpl implements AtmService {
             log.info("{} of {} for card {} was successful. Balance: {}",
                     isDeposit ? "Deposit" : "Withdrawal", amount, cardNumber, cardBalance);
 
-            kafkaProducerService.setKafkaProducerService(
+            kafkaProducerService.setKafkaProducerServiceMessage(
                     CardDto.builder()
                             .cardNumber(card.getCardNumber())
                             .balance(cardBalance)

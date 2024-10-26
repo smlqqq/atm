@@ -23,7 +23,7 @@ public class KafkaProducerService {
         kafkaTemplate.send(topic, message);
     }
 
-    public void setKafkaProducerService(Object data, String topic) {
+    public void setKafkaProducerServiceMessage(Object data, String topic) {
         String message = gson.toJson(data);
         sendMessage(topic, message);
     }

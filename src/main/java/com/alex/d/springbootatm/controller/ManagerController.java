@@ -3,8 +3,7 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.BankCardModel;
 import com.alex.d.springbootatm.response.ErrorResponse;
-import com.alex.d.springbootatm.service.AtmService;
-import com.alex.d.springbootatm.service.ManagerServiceimpl;
+import com.alex.d.springbootatm.service.ManagerService;
 import com.alex.d.springbootatm.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,7 +26,7 @@ import java.util.List;
 public class ManagerController {
 
     @Autowired
-    private ManagerServiceimpl managerServiceimpl;
+    private ManagerService managerService;
 
     @Autowired
     private ReportService reportService;
@@ -44,9 +43,13 @@ public class ManagerController {
     )
     @GetMapping("/bank-cards/getAll")
     public ResponseEntity<List<BankCardModel>> getAllBankCards() {
-        return managerServiceimpl.getAllCards()
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.noContent().build());
+        List<BankCardModel> cards = managerService.getAllCards();
+
+        if (cards.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(cards);
     }
 
     @Operation(
@@ -70,7 +73,7 @@ public class ManagerController {
         }
 
         try {
-            managerServiceimpl.deleteCardByNumber(cardNumber);
+            managerService.deleteCardByNumber(cardNumber);
             return ResponseEntity.status(HttpStatus.OK).body("Card with number " + cardNumber + " was deleted");
         } catch (CardNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "Card not found", "/delete/" + cardNumber);
@@ -92,7 +95,7 @@ public class ManagerController {
 
     @PostMapping("/createCard")
     public ResponseEntity createNewCard() {
-        return ResponseEntity.status(HttpStatus.CREATED).body(managerServiceimpl.createCard());
+        return ResponseEntity.status(HttpStatus.CREATED).body(managerService.createCard());
     }
 
 

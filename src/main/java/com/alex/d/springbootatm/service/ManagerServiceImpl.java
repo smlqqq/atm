@@ -19,28 +19,29 @@ import java.util.Random;
 
 @Slf4j
 @Service
-public class ManagerServiceimpl implements ManagerService {
+public class ManagerServiceImpl implements ManagerService {
 
     @Autowired
     private CardRepository cardRepository;
     @Autowired
     private KafkaProducerService kafkaProducerService;
+    @Autowired
+    private AtmService atmService;
 
     @Override
-    public Optional<List<BankCardModel>> getAllCards() {
-        List<BankCardModel> cards = cardRepository.findAll();
-        return cards.isEmpty() ? Optional.empty() : Optional.of(cards);
+    public List<BankCardModel> getAllCards() {
+        return cardRepository.findAll();
     }
 
     @Override
     @Transactional
     public BankCardModel deleteCardByNumber(String cardNumber) {
 
-        Optional<BankCardModel> optCard = cardRepository.findByCardNumber(cardNumber);
+        BankCardModel cardModel = atmService.fetchCardModel(cardNumber);
 
-        if (optCard.isPresent()) {
-            cardRepository.delete(optCard.get());
-            return optCard.get();
+        if (cardModel != null) {
+            cardRepository.delete(cardModel);
+            return cardModel;
         } else {
             log.error("Card {} not exist", cardNumber);
             throw new CardNotFoundException("Card not found with number: " + cardNumber);
@@ -55,10 +56,10 @@ public class ManagerServiceimpl implements ManagerService {
         CardDto cardDto = CardDto.builder()
                 .cardNumber(card.getCardNumber())
                 .pinCode(generatePinCode())
+                .balance(generateBalance())
                 .build();
 
-        log.info("Card and pin code info {} pin code {}", cardDto.getCardNumber(), cardDto.getPinCode());
-        kafkaProducerService.setKafkaProducerService(cardDto, KafkaTopic.KAFKA_MANAGER_TOPIC);
+        log.info("Card and pin code info {} pin code {} balance {}", cardDto.getCardNumber(), cardDto.getPinCode(), cardDto.getBalance());
 
         return cardDto;
     }
@@ -75,7 +76,13 @@ public class ManagerServiceimpl implements ManagerService {
 
         log.info("Card saved into db {} pin code {}", cardModel.getCardNumber(), cardModel.getPinNumber());
 
-        kafkaProducerService.setKafkaProducerService(cardModel, KafkaTopic.KAFKA_MANAGER_TOPIC);
+        kafkaProducerService.setKafkaProducerServiceMessage(
+                CardDto.builder()
+                        .cardNumber(cardModel.getCardNumber())
+                        .pinCode(cardModel.getPinNumber())
+                        .balance(cardModel.getBalance())
+                        .build(),
+                KafkaTopic.KAFKA_MANAGER_TOPIC);
 
         return cardRepository.save(cardModel);
     }
