@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.service;
 
-import com.alex.d.springbootatm.dto.TransactionDetailsDTO;
+import com.alex.d.springbootatm.dto.TransactionDetailsDto;
 import com.alex.d.springbootatm.model.BankCardModel;
-import com.alex.d.springbootatm.repository.BankCardRepository;
+import com.alex.d.springbootatm.repository.CardRepository;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -28,7 +28,7 @@ public class ReportService {
     private final String DATE_FORMAT = "dd.MM.yyyy | HH:mm:ss";
 
     @Autowired
-    private BankCardRepository bankCardRepository;
+    private CardRepository cardRepository;
 
     @Autowired
     private TransactionServiceImpl transactionService;
@@ -93,10 +93,10 @@ public class ReportService {
             createHeaderRow.createCell(6).setCellValue("Recipient Balance");
             createHeaderRow.createCell(7).setCellValue("Timestamp");
 
-            List<TransactionDetailsDTO> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
+            List<TransactionDetailsDto> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
             if (!transactionDetails.isEmpty()) {
                 int rowNum = 1;
-                for (TransactionDetailsDTO transaction : transactionDetails) {
+                for (TransactionDetailsDto transaction : transactionDetails) {
                     Row row = sheet.createRow(rowNum++);
 
                     row.createCell(0).setCellValue(transaction.getSender());

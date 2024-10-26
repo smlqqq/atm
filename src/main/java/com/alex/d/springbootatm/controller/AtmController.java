@@ -44,23 +44,30 @@ public class AtmController {
     @GetMapping("/balance/{cardNumber}")
     public ResponseEntity getBalance(@PathVariable String cardNumber) {
 
+        if (cardNumber.isEmpty()) {
+            ErrorResponse badRequest = new ErrorResponse(
+                    Instant.now(),
+                    "400",
+                    "Invalid card number.",
+                    "/balance/" + cardNumber
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequest);
+        }
+
         try {
-
             BalanceResponse response = atmService.checkBalanceByCardNumber(cardNumber);
-
-            return ResponseEntity.ok(response);
-
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (CardNotFoundException e) {
-
             log.error("Card not found for number: {}", cardNumber);
-
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(),
+            ErrorResponse notFound = new ErrorResponse(
+                    Instant.now(),
                     "404",
                     "Card not found",
-                    "/balance/" + cardNumber);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                    "/balance/" + cardNumber
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound);
         }
+
     }
 
 

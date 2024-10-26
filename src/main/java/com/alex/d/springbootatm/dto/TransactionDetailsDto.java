@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-public class TransactionDetailsDTO {
+public class TransactionDetailsDto {
 
     private String sender;
     private BigDecimal senderBalance;
