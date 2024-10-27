@@ -1,11 +1,12 @@
 package com.alex.d.springbootatm.service;
 
 import com.alex.d.springbootatm.dto.CardDto;
+import com.alex.d.springbootatm.dto.TransactionDto;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.kafka.KafkaProducerService;
 import com.alex.d.springbootatm.kafka.KafkaTopic;
 import com.alex.d.springbootatm.model.AtmModel;
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.model.CardModel;
 import com.alex.d.springbootatm.model.TransactionModel;
 import com.alex.d.springbootatm.repository.AtmRepository;
 import com.alex.d.springbootatm.repository.CardRepository;
@@ -34,43 +35,39 @@ public class AtmServiceImpl implements AtmService {
     @Autowired
     private KafkaProducerService kafkaProducerService;
 
-    @Override
-    public BankCardModel fetchCardModel(String card) {
+    public CardModel fetchCardModel(String card) {
         return cardRepository.findByCardNumber(card)
-                .orElseThrow(() -> new CardNotFoundException("Card not found" + card));
-    }
-
-    @Override
-    public String fetchCardNumberAsString(String card) {
-        return cardRepository.findByCardNumber(card)
-                .map(BankCardModel::getCardNumber)
                 .orElseThrow(() -> new CardNotFoundException("Card not found: " + card));
     }
 
-    public BigDecimal addAmountToBalance(String card, BigDecimal amount) {
-        return cardRepository.addBalance(card, amount);
+    public void addAmountToBalance(String card, BigDecimal amount) {
+        cardRepository.addBalance(card, amount);
     }
 
-    public BigDecimal subtractAmountFromBalance(String card, BigDecimal amount) {
-        return cardRepository.subtractBalance(card, amount);
+    public void subtractAmountFromBalance(String card, BigDecimal amount) {
+        cardRepository.subtractBalance(card, amount);
     }
 
     public BigDecimal addOrSubtractBalance(String cardNumber, BigDecimal amount, boolean addAmount) {
-        return addAmount
-                ? addAmountToBalance(cardNumber, amount)
-                : subtractAmountFromBalance(cardNumber, amount);
+        if (addAmount) {
+            addAmountToBalance(cardNumber, amount);
+        } else {
+            subtractAmountFromBalance(cardNumber, amount);
+        }
+        return checkBalanceByCardNumber(cardNumber).getBalance();
     }
 
+
     @Override
-    public TransactionResponse processTransaction(String cardNumber, BigDecimal amount, boolean isDeposit) {
+    public TransactionResponse updateAccountBalance(String cardNumber, BigDecimal amount, boolean isDeposit) {
+        CardModel card = fetchCardModel(cardNumber);
 
-        if (fetchCardNumberAsString(cardNumber) != null) {
-
-            BankCardModel card = fetchCardModel(cardNumber);
+        if (card != null) {
 
             BigDecimal cardBalance = addOrSubtractBalance(cardNumber, amount, isDeposit);
 
             String transactionType = isDeposit ? "DEPOSIT_FROM" : "WITHDRAW";
+
             TransactionModel transactionModel = TransactionModel.builder()
                     .transactionType(transactionType)
                     .amount(amount)
@@ -85,6 +82,7 @@ public class AtmServiceImpl implements AtmService {
             log.info("{} of {} for card {} was successful. Balance: {}",
                     isDeposit ? "Deposit" : "Withdrawal", amount, cardNumber, cardBalance);
 
+            // Отправка сообщения в Kafka
             kafkaProducerService.setKafkaProducerServiceMessage(
                     CardDto.builder()
                             .cardNumber(card.getCardNumber())
@@ -92,6 +90,7 @@ public class AtmServiceImpl implements AtmService {
                             .build(),
                     KafkaTopic.ATM_TOPIC
             );
+
             if (isDeposit) {
                 return new DepositResponse(cardNumber, cardBalance);
             } else {
@@ -103,14 +102,15 @@ public class AtmServiceImpl implements AtmService {
         }
     }
 
+
     @Override
     @Transactional
-    public TransferResponse sendTransaction(String senderCard, String recipientCard, BigDecimal amount) {
+    public TransferResponse transferBetweenCards(String senderCard, String recipientCard, BigDecimal amount) {
 
-        if (fetchCardNumberAsString(senderCard) != null && fetchCardNumberAsString(recipientCard) != null) {
+        CardModel senderModel = fetchCardModel(senderCard);
+        CardModel recipientModel = fetchCardModel(recipientCard);
 
-            BankCardModel senderModel = fetchCardModel(senderCard);
-            BankCardModel recipientModel = fetchCardModel(recipientCard);
+        if (senderModel != null && recipientModel != null) {
 
             // Update sender's balance
             BigDecimal balanceAfterSubtract = addOrSubtractBalance(senderCard, amount, false);
@@ -147,9 +147,9 @@ public class AtmServiceImpl implements AtmService {
 
     @Override
     public BalanceResponse checkBalanceByCardNumber(String cardNumber) {
-        BankCardModel cardModel = fetchCardModel(cardNumber);
-        BigDecimal cardBalance = cardRepository.getBankCardBalanceByCardNumber(String.valueOf(cardModel)).getBalance();
-        return new BalanceResponse(cardNumber, cardBalance);
+        CardModel card = fetchCardModel(cardNumber);
+        BigDecimal balance = card.getBalance();
+        return new BalanceResponse(cardNumber, balance);
     }
 
     @Override
@@ -159,5 +159,6 @@ public class AtmServiceImpl implements AtmService {
         int randomIndex = random.nextInt(allAtmModelNames.size());
         return allAtmModelNames.get(randomIndex);
     }
+
 
 }

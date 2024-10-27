@@ -1,10 +1,8 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.dto.CardDto;
-import com.alex.d.springbootatm.kafka.KafkaProducerService;
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.model.CardModel;
 import com.alex.d.springbootatm.repository.CardRepository;
-import com.alex.d.springbootatm.service.AtmService;
 import com.alex.d.springbootatm.service.ManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,12 +40,12 @@ class ManagerControllerTest {
 
     @Test
     void getAllBankCards() {
-        List<BankCardModel> cards = new ArrayList<>();
-        cards.add(new BankCardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
-        cards.add(new BankCardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
+        List<CardModel> cards = new ArrayList<>();
+        cards.add(new CardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
+        cards.add(new CardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
 
         when(managerService.getAllCards()).thenReturn(cards);
-        List<BankCardModel> retrievedCards = managerService.getAllCards();
+        List<CardModel> retrievedCards = managerService.getAllCards();
 
         assertNotNull(retrievedCards);
         assertEquals(2, retrievedCards.size());
@@ -58,7 +56,7 @@ class ManagerControllerTest {
     @Test
     void deleteCard() {
         String cardNumber = "4000007329214081";
-        BankCardModel bankCard = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
+        CardModel bankCard = new CardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
 
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(bankCard));
         when(managerService.deleteCardByNumber(cardNumber)).thenReturn(bankCard);

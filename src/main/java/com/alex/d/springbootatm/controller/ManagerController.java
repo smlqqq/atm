@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.model.CardModel;
 import com.alex.d.springbootatm.response.ErrorResponse;
 import com.alex.d.springbootatm.service.ManagerService;
 import com.alex.d.springbootatm.service.ReportService;
@@ -37,13 +37,13 @@ public class ManagerController {
             description = "Retrieve details of all bank cards",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardModel.class))
                     })
             }
     )
     @GetMapping("/bank-cards/getAll")
-    public ResponseEntity<List<BankCardModel>> getAllBankCards() {
-        List<BankCardModel> cards = managerService.getAllCards();
+    public ResponseEntity<List<CardModel>> getAllBankCards() {
+        List<CardModel> cards = managerService.getAllCards();
 
         if (cards.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -57,7 +57,7 @@ public class ManagerController {
             description = "Delete all details about card",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))}),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardModel.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
                     @ApiResponse(responseCode = "404", description = "Not found", content = {
@@ -87,7 +87,7 @@ public class ManagerController {
             description = "Create a new bank card using the provided details",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardModel.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardModel.class))
                     })
             }
 

@@ -1,6 +1,5 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.repository.CardRepository;
 import com.alex.d.springbootatm.response.BalanceResponse;
 import com.alex.d.springbootatm.response.TransactionResponse;
 import com.alex.d.springbootatm.service.AtmService;
@@ -48,7 +47,7 @@ class AtmControllerTest {
         BigDecimal amount = BigDecimal.valueOf(500);
         TransactionResponse transactionResponse = new TransactionResponse(cardNumber, amount);
 
-        when(atmService.processTransaction(cardNumber, amount, true)).thenReturn(transactionResponse);
+        when(atmService.updateAccountBalance(cardNumber, amount, true)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = atmController.deposit(cardNumber, amount);
 
@@ -71,7 +70,7 @@ class AtmControllerTest {
         TransactionResponse transactionResponse = new TransactionResponse(cardNumber, amount);
 
         when(atmService.checkBalanceByCardNumber(cardNumber)).thenReturn(balanceResponse);
-        when(atmService.processTransaction(cardNumber, amount, false)).thenReturn(transactionResponse);
+        when(atmService.updateAccountBalance(cardNumber, amount, false)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = atmController.withdraw(cardNumber, amount);
 

@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.service;
 
-import com.alex.d.springbootatm.dto.TransactionDetailsDto;
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.dto.TransactionDto;
+import com.alex.d.springbootatm.model.CardModel;
 import com.alex.d.springbootatm.repository.CardRepository;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class ReportService {
@@ -50,10 +48,10 @@ public class ReportService {
             createHeaderRow.createCell(1).setCellValue("Pin");
             createHeaderRow.createCell(2).setCellValue("Balance");
 
-            List<BankCardModel> cards = managerService.getAllCards();
+            List<CardModel> cards = managerService.getAllCards();
 
             int rowNum = 1;
-            for (BankCardModel card : cards) {
+            for (CardModel card : cards) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(card.getCardNumber());
                 row.createCell(1).setCellValue(card.getPinNumber());
@@ -93,10 +91,10 @@ public class ReportService {
             createHeaderRow.createCell(6).setCellValue("Recipient Balance");
             createHeaderRow.createCell(7).setCellValue("Timestamp");
 
-            List<TransactionDetailsDto> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
+            List<TransactionDto> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
             if (!transactionDetails.isEmpty()) {
                 int rowNum = 1;
-                for (TransactionDetailsDto transaction : transactionDetails) {
+                for (TransactionDto transaction : transactionDetails) {
                     Row row = sheet.createRow(rowNum++);
 
                     row.createCell(0).setCellValue(transaction.getSender());

@@ -100,7 +100,7 @@ public class AtmController {
         }
 
         try {
-            TransactionResponse depositResponse = atmService.processTransaction(cardNumber, amount, true);
+            TransactionResponse depositResponse = atmService.updateAccountBalance(cardNumber, amount, true);
             log.info("Balance {} increased successfully for card {}", cardNumber, depositResponse.getBalance());
             return ResponseEntity.status(HttpStatus.OK).body(depositResponse);
         } catch (CardNotFoundException e) {
@@ -155,7 +155,7 @@ public class AtmController {
         }
 
         try {
-            TransactionResponse withdrawResponse = atmService.processTransaction(cardNumber, amount, false);
+            TransactionResponse withdrawResponse = atmService.updateAccountBalance(cardNumber, amount, false);
             log.info("Balance for card {} decreased {}",cardNumber, withdrawResponse.getBalance());
             log.info("Balance {} ",withdrawResponse.getBalance());
             return ResponseEntity.status(HttpStatus.OK).body(withdrawResponse);

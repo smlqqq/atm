@@ -4,7 +4,7 @@ import com.alex.d.springbootatm.dto.CardDto;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.kafka.KafkaProducerService;
 import com.alex.d.springbootatm.kafka.KafkaTopic;
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.model.CardModel;
 import com.alex.d.springbootatm.repository.CardRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -29,19 +29,19 @@ public class ManagerServiceImpl implements ManagerService {
     private AtmService atmService;
 
     @Override
-    public List<BankCardModel> getAllCards() {
+    public List<CardModel> getAllCards() {
         return cardRepository.findAll();
     }
 
     @Override
     @Transactional
-    public BankCardModel deleteCardByNumber(String cardNumber) {
+    public CardModel deleteCardByNumber(String cardNumber) {
 
-        BankCardModel cardModel = atmService.fetchCardModel(cardNumber);
+        Optional<CardModel> optCard = Optional.ofNullable(atmService.fetchCardModel(cardNumber));
 
-        if (cardModel != null) {
-            cardRepository.delete(cardModel);
-            return cardModel;
+        if (optCard.isPresent()) {
+            cardRepository.delete(optCard.get());
+            return optCard.get();
         } else {
             log.error("Card {} not exist", cardNumber);
             throw new CardNotFoundException("Card not found with number: " + cardNumber);
@@ -51,24 +51,19 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     public CardDto createCard() {
 
-        BankCardModel card = saveCreatedCardToDB();
-
-        CardDto cardDto = CardDto.builder()
+        CardModel card = saveCreatedCardToDB();
+        return CardDto.builder()
                 .cardNumber(card.getCardNumber())
                 .pinCode(generatePinCode())
                 .balance(generateBalance())
                 .build();
-
-        log.info("Card and pin code info {} pin code {} balance {}", cardDto.getCardNumber(), cardDto.getPinCode(), cardDto.getBalance());
-
-        return cardDto;
     }
 
     @Override
     @Transactional
-    public BankCardModel saveCreatedCardToDB() {
+    public CardModel saveCreatedCardToDB() {
 
-        BankCardModel cardModel = BankCardModel.builder()
+        CardModel cardModel = CardModel.builder()
                 .cardNumber(generateCreditCardNumber())
                 .pinNumber(hashPinCode(generatePinCode()))
                 .balance(generateBalance())
