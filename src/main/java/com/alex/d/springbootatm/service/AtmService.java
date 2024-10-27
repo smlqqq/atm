@@ -1,32 +1,23 @@
 package com.alex.d.springbootatm.service;
 
-import com.alex.d.springbootatm.dto.BankCardDTO;
 import com.alex.d.springbootatm.model.AtmModel;
-import com.alex.d.springbootatm.model.BankCardModel;
-import com.alex.d.springbootatm.response.*;
+import com.alex.d.springbootatm.model.CardModel;
+import com.alex.d.springbootatm.response.BalanceResponse;
+import com.alex.d.springbootatm.response.TransactionResponse;
+import com.alex.d.springbootatm.response.TransferResponse;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 
 public interface AtmService {
 
-    TransferResponse sendTransaction(String senderCard, String recipientCard, BigDecimal amount);
-
-    BankCardModel saveCreatedCardToDB();
-
-    String generatePinCode();
-
-    String generateCreditCardNumber();
-
-    BigDecimal generateBalance();
+    TransferResponse transferBetweenCards(String senderCard, String recipientCard, BigDecimal amount);
 
     BalanceResponse checkBalanceByCardNumber(String cardNumber);
 
     AtmModel returnAtmName();
 
-    String hashPinCode(String password);
+    TransactionResponse updateAccountBalance(String cardNumber, BigDecimal amount, boolean isDeposit);
 
-    TransactionResponse processTransaction(String cardNumber, BigDecimal amount, boolean isDeposit);
+    CardModel fetchCardModel(String card);
 
 }

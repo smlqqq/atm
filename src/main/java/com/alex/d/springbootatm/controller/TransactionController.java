@@ -72,7 +72,8 @@ public class TransactionController {
 
         try {
             log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
-            return ResponseEntity.status(HttpStatus.OK).body(atmService.sendTransaction(senderCardNumber, recipientCardNumber, amount));
+            TransferResponse transactionResponse = atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount);
+            return ResponseEntity.status(HttpStatus.OK).body(transactionResponse);
         } catch (CardNotFoundException e) {
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(Instant.now(), "404",

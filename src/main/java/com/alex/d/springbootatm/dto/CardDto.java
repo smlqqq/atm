@@ -9,18 +9,19 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BankCardDTO {
+public class CardDto {
 
     private String cardNumber;
     private String pinCode;
     private BigDecimal balance;
 
-
-    public BankCardDTO(String cardNumber, BigDecimal balance) {
-        this.cardNumber = cardNumber;
+    public CardDto(BigDecimal balance) {
         this.balance = balance;
     }
 
-
+    public CardDto(String cardNumber, BigDecimal balance) {
+        this.cardNumber = cardNumber;
+        this.balance = balance;
+    }
 }
 

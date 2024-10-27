@@ -44,23 +44,32 @@ public class AtmController {
     @GetMapping("/balance/{cardNumber}")
     public ResponseEntity getBalance(@PathVariable String cardNumber) {
 
+        if (cardNumber.isEmpty()) {
+            log.error("invalid card number {}", cardNumber);
+            ErrorResponse badRequest = new ErrorResponse(
+                    Instant.now(),
+                    "400",
+                    "Invalid card number.",
+                    "/balance/" + cardNumber
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequest);
+        }
+
         try {
-
             BalanceResponse response = atmService.checkBalanceByCardNumber(cardNumber);
-
-            return ResponseEntity.ok(response);
-
+            log.info("balance {} for card {} retreived successfuly", response.getBalance(), cardNumber);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (CardNotFoundException e) {
-
             log.error("Card not found for number: {}", cardNumber);
-
-            ErrorResponse errorResponse = new ErrorResponse(Instant.now(),
+            ErrorResponse notFound = new ErrorResponse(
+                    Instant.now(),
                     "404",
                     "Card not found",
-                    "/balance/" + cardNumber);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                    "/balance/" + cardNumber
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound);
         }
+
     }
 
 
@@ -91,7 +100,8 @@ public class AtmController {
         }
 
         try {
-            TransactionResponse depositResponse = atmService.processTransaction(cardNumber, amount, true);
+            TransactionResponse depositResponse = atmService.updateAccountBalance(cardNumber, amount, true);
+            log.info("Balance {} increased successfully for card {}", cardNumber, depositResponse.getBalance());
             return ResponseEntity.status(HttpStatus.OK).body(depositResponse);
         } catch (CardNotFoundException e) {
             log.error("Card not found: {}", cardNumber);
@@ -145,7 +155,9 @@ public class AtmController {
         }
 
         try {
-            TransactionResponse withdrawResponse = atmService.processTransaction(cardNumber, amount, false);
+            TransactionResponse withdrawResponse = atmService.updateAccountBalance(cardNumber, amount, false);
+            log.info("Balance for card {} decreased {}",cardNumber, withdrawResponse.getBalance());
+            log.info("Balance {} ",withdrawResponse.getBalance());
             return ResponseEntity.status(HttpStatus.OK).body(withdrawResponse);
         } catch (CardNotFoundException e) {
             log.error("Card not found: {}", cardNumber);
