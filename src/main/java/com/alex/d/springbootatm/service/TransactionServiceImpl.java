@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm.service;
 
-import com.alex.d.springbootatm.dto.TransactionDetailsDto;
+import com.alex.d.springbootatm.dto.TransactionDto;
 import com.alex.d.springbootatm.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionRepository transactionRepository;
 
     @Override
-    public List<TransactionDetailsDto> getTransactionDetailsByCardNumber(String cardNumber) {
+    public List<TransactionDto> getTransactionDetailsByCardNumber(String cardNumber) {
         return transactionRepository.findTransactionDetailsByCardNumber(cardNumber);
     }
 }

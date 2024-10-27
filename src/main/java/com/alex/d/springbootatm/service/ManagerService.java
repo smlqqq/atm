@@ -1,19 +1,18 @@
 package com.alex.d.springbootatm.service;
 
 import com.alex.d.springbootatm.dto.CardDto;
-import com.alex.d.springbootatm.model.BankCardModel;
+import com.alex.d.springbootatm.model.CardModel;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public interface ManagerService {
 
-    List<BankCardModel> getAllCards();
+    List<CardModel> getAllCards();
 
-    BankCardModel deleteCardByNumber(String cardNumber);
+    CardModel deleteCardByNumber(String cardNumber);
 
     CardDto createCard();
 
@@ -23,7 +22,7 @@ public interface ManagerService {
 
     BigDecimal generateBalance();
 
-    BankCardModel saveCreatedCardToDB();
+    CardModel saveCreatedCardToDB();
 
     String hashPinCode(String pinCode);
 

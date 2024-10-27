@@ -34,12 +34,12 @@ public class TransactionModel {
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     @JoinColumn(name = "sender", referencedColumnName = "card_number")
-    private BankCardModel senderCard;
+    private CardModel senderCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     @JoinColumn(name = "recipient", referencedColumnName = "card_number")
-    private BankCardModel recipientCard;
+    private CardModel recipientCard;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "atm_name", referencedColumnName = "name")

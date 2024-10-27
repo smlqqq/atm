@@ -1,9 +1,6 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.BankCardModel;
-import com.alex.d.springbootatm.repository.CardRepository;
 import com.alex.d.springbootatm.response.BalanceResponse;
-import com.alex.d.springbootatm.response.TransactionResponse;
 import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.AtmService;
 import org.junit.jupiter.api.Test;
@@ -15,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +43,7 @@ class TransactionControllerTest {
         );
 
         when(atmService.checkBalanceByCardNumber(senderCardNumber)).thenReturn(new BalanceResponse(senderCardNumber, senderBalance));
-        when(atmService.sendTransaction(senderCardNumber, recipientCardNumber, amount)).thenReturn(transferResponse);
+        when(atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount)).thenReturn(transferResponse);
 
         ResponseEntity<?> response = transactionController.transferFundsToAnotherCard(senderCardNumber, recipientCardNumber, amount);
 

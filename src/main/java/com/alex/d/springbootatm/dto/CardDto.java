@@ -15,5 +15,13 @@ public class CardDto {
     private String pinCode;
     private BigDecimal balance;
 
+    public CardDto(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    public CardDto(String cardNumber, BigDecimal balance) {
+        this.cardNumber = cardNumber;
+        this.balance = balance;
+    }
 }
 

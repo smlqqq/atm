@@ -1,6 +1,7 @@
 package com.alex.d.springbootatm.model;
 
 
+import com.alex.d.springbootatm.dto.TransactionDto;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ import java.util.Set;
 @Builder
 @Table(name = "atm_accounts")
 @JsonTypeName("Card")
-public class BankCardModel {
+public class CardModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -42,7 +43,7 @@ public class BankCardModel {
     @OneToMany(mappedBy = "recipientCard") // Field recipientCard in TransactionModel
     private Set<TransactionModel> receivedTransactions;
 
-    public BankCardModel(Long id, String cardNumber, String pinNumber, BigDecimal balance) {
+    public CardModel(Long id, String cardNumber, String pinNumber, BigDecimal balance) {
         this.id = id;
         this.cardNumber = cardNumber;
         this.pinNumber = pinNumber;

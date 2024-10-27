@@ -2,7 +2,6 @@ package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.response.ErrorResponse;
-import com.alex.d.springbootatm.response.TransactionResponse;
 import com.alex.d.springbootatm.response.TransferResponse;
 import com.alex.d.springbootatm.service.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,7 +72,7 @@ public class TransactionController {
 
         try {
             log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
-            TransferResponse transactionResponse = atmService.sendTransaction(senderCardNumber, recipientCardNumber, amount);
+            TransferResponse transactionResponse = atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount);
             return ResponseEntity.status(HttpStatus.OK).body(transactionResponse);
         } catch (CardNotFoundException e) {
 
