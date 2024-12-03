@@ -1,10 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.response.BalanceResponse;
-import com.alex.d.springbootatm.model.response.DepositeResponse;
-import com.alex.d.springbootatm.model.response.ErrorResponse;
-import com.alex.d.springbootatm.model.response.WithdrawResponse;
+import com.alex.d.springbootatm.model.dto.response.*;
 import com.alex.d.springbootatm.service.atm.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -104,7 +101,7 @@ public class AtmController {
 
         try {
 
-            DepositeResponse depositResponse = atmService.updateAccountBalance(card, amount, true);
+            CardResponse depositResponse = atmService.updateAccountBalance(card, amount, true);
             log.info("Balance {} increased successfully for card {}", amount, card);
 
             return ResponseEntity.status(HttpStatus.OK).body(depositResponse);
@@ -160,8 +157,8 @@ public class AtmController {
         }
 
         try {
-            DepositeResponse withdrawResponse = atmService.updateAccountBalance(card, amount, false);
-            log.info("Balance for card {} decreased {}", card, withdrawResponse.getDeposit());
+            CardResponse withdrawResponse = atmService.updateAccountBalance(card, amount, false);
+            log.info("Balance for card {} decreased {}", card, amount);
             return ResponseEntity.status(HttpStatus.OK).body(withdrawResponse);
         } catch (CardNotFoundException e) {
             log.error("Card not found: {}", card);

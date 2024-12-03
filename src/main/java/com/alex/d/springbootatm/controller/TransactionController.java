@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.response.ErrorResponse;
-import com.alex.d.springbootatm.model.response.TransferResponse;
+import com.alex.d.springbootatm.model.dto.response.ErrorResponse;
+import com.alex.d.springbootatm.model.dto.response.TransactionResponse;
 import com.alex.d.springbootatm.service.atm.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,13 +29,13 @@ public class TransactionController {
     private AtmService atmService;
 
 
-    @PostMapping("/transfer")
+    @PutMapping("/transfer")
     @Operation(
             description = "Transfer funds between cards",
             summary = "Transfer funds between cards",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = TransferResponse.class))}),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = TransactionResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
                     @ApiResponse(responseCode = "404", description = "Not found", content = {
@@ -72,7 +69,7 @@ public class TransactionController {
 
         try {
             log.info("Transactions of {} from card {} to card {} was successful.", amount, sender, recipient);
-            TransferResponse transactionResponse = atmService.transferBetweenCards(sender, recipient, amount);
+            TransactionResponse transactionResponse = atmService.transferBetweenCards(sender, recipient, amount);
             return ResponseEntity.status(HttpStatus.OK).body(transactionResponse);
         } catch (CardNotFoundException e) {
 

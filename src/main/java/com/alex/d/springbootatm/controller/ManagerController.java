@@ -2,7 +2,7 @@ package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.model.dto.CardDto;
-import com.alex.d.springbootatm.model.response.ErrorResponse;
+import com.alex.d.springbootatm.model.dto.response.ErrorResponse;
 import com.alex.d.springbootatm.service.card.CardService;
 import com.alex.d.springbootatm.util.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +33,7 @@ public class ManagerController {
 
 
     @Operation(
-            summary = "Get all bank cards",
+            summary = "Get all data",
             description = "Retrieve details of all bank cards",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
@@ -100,7 +100,7 @@ public class ManagerController {
 
     @PostMapping("/create")
     public ResponseEntity create() {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cardService.createAndSaveCard());
+        return ResponseEntity.status(HttpStatus.CREATED).body(cardService.createCard());
     }
 
 

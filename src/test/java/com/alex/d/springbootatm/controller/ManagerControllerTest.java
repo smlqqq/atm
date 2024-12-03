@@ -92,7 +92,7 @@ class ManagerControllerTest {
                 .build();
 
 
-        when(cardService.createAndSaveCard()).thenReturn(dto);
+        when(cardService.createCard()).thenReturn(dto);
 
         ResponseEntity<CardDto> response = managerController.create();
 
