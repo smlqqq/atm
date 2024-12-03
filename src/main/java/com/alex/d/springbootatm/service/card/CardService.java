@@ -11,8 +11,8 @@ public interface CardService {
 
     CardDto deleteCardByNumber(String cardNumber);
 
-    CardDto createAndSaveCard();
+    CardDto createCard();
 
-    CardDto saveCreatedCardToDB(CardModel card);
+    CardDto saveCardToDB(CardModel card);
 
 }

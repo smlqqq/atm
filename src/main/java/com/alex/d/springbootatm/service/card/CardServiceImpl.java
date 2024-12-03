@@ -64,20 +64,20 @@ public class CardServiceImpl implements CardService {
 
 
     @Override
-    public CardDto createAndSaveCard() {
+    public CardDto createCard() {
 
         String pinCode = cardGenerationService.generatePinCode();
 
         CardModel cardModel = cardGenerationService.buildCardModel(pinCode);
 
-        CardDto savedCard = saveCreatedCardToDB(cardModel);
+        CardDto savedCard = saveCardToDB(cardModel);
 
         log.info("Card created and saved into db {} hashed pin code {}", savedCard.getCardNumber(), savedCard.getPin());
 
         kafkaProducerService.setKafkaProducerServiceMessage(
                 CardDto.builder()
                         .cardNumber(savedCard.getCardNumber())
-                        .pin("SECRET")
+                        .pin("***")
                         .balance(savedCard.getBalance())
                         .build(),
                 KafkaTopic.KAFKA_MANAGER_TOPIC.getTopicName());
@@ -92,7 +92,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
-    public CardDto saveCreatedCardToDB(CardModel card) {
+    public CardDto saveCardToDB(CardModel card) {
         CardModel savedCard = cardRepository.save(card);
         return CardDto.builder()
                 .cardNumber(savedCard.getCardNumber())

@@ -1,11 +1,11 @@
-package com.alex.d.springbootatm.model.response;
+package com.alex.d.springbootatm.model.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -13,7 +13,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @AllArgsConstructor
-public class TransferResponse {
+@Builder
+public class TransactionResponse {
 
     @JsonProperty("sender card number")
     @Schema(description = "sender card number", example = "4000003813378680")
@@ -25,14 +26,14 @@ public class TransferResponse {
 
     @JsonProperty("transferred funds")
     @Schema (description = "transferred funds", example = " 500")
-    private BigDecimal transferred_funds;
+    private BigDecimal transferredFunds;
 
     @JsonProperty("sender balance")
     @Schema(description = "check sender's balance after transfer", example = "500")
-    private BigDecimal sender_balance;
+    private BigDecimal senderBalance;
 
     @JsonProperty("recipient balance")
     @Schema(description = "check recipient's balance after transfer", example = "1000")
-    private BigDecimal recipient_balance;
+    private BigDecimal recipientBalance;
 
 }

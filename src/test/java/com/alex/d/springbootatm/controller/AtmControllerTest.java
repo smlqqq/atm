@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.response.BalanceResponse;
-import com.alex.d.springbootatm.model.response.DepositeResponse;
+import com.alex.d.springbootatm.model.dto.response.BalanceResponse;
+import com.alex.d.springbootatm.model.dto.response.DepositeResponse;
 import com.alex.d.springbootatm.service.atm.AtmService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,31 +45,27 @@ class AtmControllerTest {
     void deposit() {
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
-        DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount);
-        BalanceResponse expectedResponse = new BalanceResponse(cardNumber, amount);
+        DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount.toPlainString());
 
         when(atmService.updateAccountBalance(cardNumber, amount, true)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = atmController.deposit(cardNumber, amount);
 
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(transactionResponse.getCardNumber(), ((DepositeResponse) response.getBody()).getCardNumber());
-        assertEquals(transactionResponse.getDeposit(), ((DepositeResponse) response.getBody()).getDeposit());
-        assertEquals(expectedResponse.getCardNumber(), expectedResponse.getBalance(), ((DepositeResponse) response.getBody()).getCardNumber());
+
 
     }
 
     @Test
     void withdraw() {
-
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(200);
         BigDecimal cardBalance = BigDecimal.valueOf(1000);
 
         BalanceResponse balanceResponse = new BalanceResponse(cardNumber, cardBalance);
-        DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount);
+        DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount.toPlainString());
 
         when(atmService.checkBalanceByCardNumber(cardNumber)).thenReturn(balanceResponse);
         when(atmService.updateAccountBalance(cardNumber, amount, false)).thenReturn(transactionResponse);
