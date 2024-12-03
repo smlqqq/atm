@@ -1,9 +1,9 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.dto.CardDto;
 import com.alex.d.springbootatm.model.CardModel;
+import com.alex.d.springbootatm.model.dto.CardDto;
 import com.alex.d.springbootatm.repository.CardRepository;
-import com.alex.d.springbootatm.service.ManagerService;
+import com.alex.d.springbootatm.service.card.CardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,7 +28,7 @@ class ManagerControllerTest {
     CardRepository bankCardRepository;
 
     @Mock
-    ManagerService managerService;
+    CardService cardService;
 
     @InjectMocks
     ManagerController managerController;
@@ -44,8 +44,19 @@ class ManagerControllerTest {
         cards.add(new CardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
         cards.add(new CardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
 
-        when(managerService.getAllCards()).thenReturn(cards);
-        List<CardModel> retrievedCards = managerService.getAllCards();
+        List<CardDto> cardDtos = new ArrayList<>();
+
+        for (CardModel card : cards) {
+            CardDto cardDto = CardDto.builder()
+                    .cardNumber(card.getCardNumber())
+                    .pin(card.getPinNumber())
+                    .balance(card.getBalance())
+                    .build();
+            cardDtos.add(cardDto);
+        }
+
+        when(cardService.getAllCards()).thenReturn(cardDtos);
+        List<CardDto> retrievedCards = cardService.getAllCards();
 
         assertNotNull(retrievedCards);
         assertEquals(2, retrievedCards.size());
@@ -57,24 +68,36 @@ class ManagerControllerTest {
     void deleteCard() {
         String cardNumber = "4000007329214081";
         CardModel bankCard = new CardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
+        CardDto dto = CardDto.builder()
+                        .cardNumber(bankCard.getCardNumber())
+                                .pin(bankCard.getPinNumber())
+                                        .balance(bankCard.getBalance())
+                                                .build();
 
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(bankCard));
-        when(managerService.deleteCardByNumber(cardNumber)).thenReturn(bankCard);
+        when(cardService.deleteCardByNumber(cardNumber)).thenReturn(dto);
 
-        ResponseEntity<?> response = managerController.deleteCard(cardNumber);
+        ResponseEntity<?> response = managerController.delete(cardNumber);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    void createNewCard() {  CardDto newCard = new CardDto("4000003813378680", "3256", BigDecimal.valueOf(0));
+    void createNewCard() {
+        CardModel bankCard = new CardModel(1L,"4000003813378680", "3256", BigDecimal.valueOf(0));
+        CardDto dto = CardDto.builder()
+                .cardNumber(bankCard.getCardNumber())
+                .pin(bankCard.getPinNumber())
+                .balance(bankCard.getBalance())
+                .build();
 
-        when(managerService.createCard()).thenReturn(newCard);
 
-        ResponseEntity<CardDto> response = managerController.createNewCard();
+        when(cardService.createAndSaveCard()).thenReturn(dto);
+
+        ResponseEntity<CardDto> response = managerController.create();
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(newCard, response.getBody());
+        assertEquals(dto, response.getBody());
 
     }
 }

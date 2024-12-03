@@ -1,4 +1,4 @@
-package com.alex.d.springbootatm.response;
+package com.alex.d.springbootatm.model.response;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

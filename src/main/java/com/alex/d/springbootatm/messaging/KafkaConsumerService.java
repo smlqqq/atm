@@ -1,6 +1,6 @@
-package com.alex.d.springbootatm.kafka;
+package com.alex.d.springbootatm.messaging;
 
-import com.alex.d.springbootatm.dto.CardDto;
+import com.alex.d.springbootatm.model.dto.CardDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

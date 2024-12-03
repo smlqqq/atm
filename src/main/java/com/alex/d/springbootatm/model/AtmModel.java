@@ -1,5 +1,6 @@
 package com.alex.d.springbootatm.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "atms")
+@Schema(hidden = true)
 public class AtmModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

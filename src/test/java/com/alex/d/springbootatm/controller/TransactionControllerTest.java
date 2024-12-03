@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.response.BalanceResponse;
-import com.alex.d.springbootatm.response.TransferResponse;
-import com.alex.d.springbootatm.service.AtmService;
+import com.alex.d.springbootatm.model.response.BalanceResponse;
+import com.alex.d.springbootatm.model.response.TransferResponse;
+import com.alex.d.springbootatm.service.atm.AtmService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
