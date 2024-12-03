@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm;
 
-import io.github.cdimascio.dotenv.Dotenv;
+import com.alex.d.springbootatm.configuration.env.DotEnvConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -9,11 +9,8 @@ public class SpringBootAtmApplication {
 
     public static void main(String[] args) {
 
-        Dotenv dotenv = Dotenv.load();
-        System.setProperty("DB_URL", dotenv.get("DB_URL"));
-        System.setProperty("DB_SCHEMA", dotenv.get("DB_SCHEMA"));
-        System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+        DotEnvConfig config = new DotEnvConfig();
+        config.createConfig();
 
         SpringApplication.run(SpringBootAtmApplication.class, args);
     }

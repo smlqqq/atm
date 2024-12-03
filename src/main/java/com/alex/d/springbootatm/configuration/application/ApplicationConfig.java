@@ -1,4 +1,4 @@
-package com.alex.d.springbootatm.configuration;
+package com.alex.d.springbootatm.configuration.application;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;

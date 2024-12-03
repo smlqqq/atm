@@ -5,6 +5,7 @@ WORKDIR /app
 # Copy the pom.xml and source code
 COPY pom.xml .
 COPY src ./src
+COPY .env /app/.env
 
 # Package the application
 RUN mvn clean package -DskipTests
@@ -21,6 +22,3 @@ EXPOSE 8080
 
 # Run the app
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
-#docker build -t spring-boot-atm .
-#docker run -p 8080:8080 spring-boot-atm

@@ -1,8 +1,11 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.response.*;
-import com.alex.d.springbootatm.service.AtmService;
+import com.alex.d.springbootatm.model.response.BalanceResponse;
+import com.alex.d.springbootatm.model.response.DepositeResponse;
+import com.alex.d.springbootatm.model.response.ErrorResponse;
+import com.alex.d.springbootatm.model.response.WithdrawResponse;
+import com.alex.d.springbootatm.service.atm.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -41,31 +44,31 @@ public class AtmController {
                     })
             }
     )
-    @GetMapping("/balance/{cardNumber}")
-    public ResponseEntity getBalance(@PathVariable String cardNumber) {
+    @GetMapping("/balance/{card}")
+    public ResponseEntity balance(@PathVariable String card) {
 
-        if (cardNumber.isEmpty()) {
-            log.error("invalid card number {}", cardNumber);
+        if (card.isEmpty()) {
+            log.error("invalid card number {}", card);
             ErrorResponse badRequest = new ErrorResponse(
                     Instant.now(),
                     "400",
                     "Invalid card number.",
-                    "/balance/" + cardNumber
+                    "/balance/" + card
             );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequest);
         }
 
         try {
-            BalanceResponse response = atmService.checkBalanceByCardNumber(cardNumber);
-            log.info("balance {} for card {} retreived successfuly", response.getBalance(), cardNumber);
+            BalanceResponse response = atmService.checkBalanceByCardNumber(card);
+            log.info("balance {} for card {} retreived successfuly", response.getBalance(), card);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (CardNotFoundException e) {
-            log.error("Card not found for number: {}", cardNumber);
+            log.error("Card not found for number: {}", card);
             ErrorResponse notFound = new ErrorResponse(
                     Instant.now(),
                     "404",
                     "Card not found",
-                    "/balance/" + cardNumber
+                    "/balance/" + card
             );
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound);
         }
@@ -78,7 +81,7 @@ public class AtmController {
             description = "Deposit funds to the specified card using ATM and amount",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = DepositResponse.class))}),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = DepositeResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
                     @ApiResponse(responseCode = "404", description = "Not found", content = {
@@ -87,7 +90,7 @@ public class AtmController {
     )
     @PutMapping("/deposit")
     public ResponseEntity deposit(
-            @Parameter(description = "Recipient card number", required = true) @RequestParam("cardNumber") String cardNumber,
+            @Parameter(description = "Recipient card number", required = true) @RequestParam("card") String card,
             @Parameter(description = "Amount to deposit", required = true) @RequestParam("amount") BigDecimal amount) {
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -100,15 +103,17 @@ public class AtmController {
         }
 
         try {
-            TransactionResponse depositResponse = atmService.updateAccountBalance(cardNumber, amount, true);
-            log.info("Balance {} increased successfully for card {}", cardNumber, depositResponse.getBalance());
+
+            DepositeResponse depositResponse = atmService.updateAccountBalance(card, amount, true);
+            log.info("Balance {} increased successfully for card {}", amount, card);
+
             return ResponseEntity.status(HttpStatus.OK).body(depositResponse);
         } catch (CardNotFoundException e) {
-            log.error("Card not found: {}", cardNumber);
+            log.error("Card not found: {}", card);
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(),
                     "404",
                     "Card not found",
-                    "/deposit/" + cardNumber);
+                    "/deposit/" + card);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
@@ -129,18 +134,18 @@ public class AtmController {
     )
     @PostMapping("/withdraw")
     public ResponseEntity withdraw(
-            @Parameter(description = "Card number", required = true) @RequestParam("cardNumber") String cardNumber,
+            @Parameter(description = "Card number", required = true) @RequestParam("card") String card,
             @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) {
 
-        BigDecimal cardBalance = atmService.checkBalanceByCardNumber(cardNumber).getBalance();
+        BigDecimal cardBalance = atmService.checkBalanceByCardNumber(card).getBalance();
 
         if (cardBalance.compareTo(amount) < 0) {
-            log.error("Insufficient funds on your card: {} balance: {}, requested withdrawal: {}", cardNumber, cardBalance, amount);
+            log.error("Insufficient funds on your card: {} balance: {}, requested withdrawal: {}", card, cardBalance, amount);
             ErrorResponse errorResponse = new ErrorResponse(
                     Instant.now(),
                     "400",
                     "Failed to withdraw funds. Insufficient balance: " + cardBalance,
-                    "/withdraw/" + cardNumber
+                    "/withdraw/" + card
             );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
@@ -155,16 +160,15 @@ public class AtmController {
         }
 
         try {
-            TransactionResponse withdrawResponse = atmService.updateAccountBalance(cardNumber, amount, false);
-            log.info("Balance for card {} decreased {}",cardNumber, withdrawResponse.getBalance());
-            log.info("Balance {} ",withdrawResponse.getBalance());
+            DepositeResponse withdrawResponse = atmService.updateAccountBalance(card, amount, false);
+            log.info("Balance for card {} decreased {}", card, withdrawResponse.getDeposit());
             return ResponseEntity.status(HttpStatus.OK).body(withdrawResponse);
         } catch (CardNotFoundException e) {
-            log.error("Card not found: {}", cardNumber);
+            log.error("Card not found: {}", card);
             ErrorResponse errorResponse = new ErrorResponse(Instant.now(),
                     "404",
                     "Card not found",
-                    "/withdraw/" + cardNumber);
+                    "/withdraw/" + card);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }

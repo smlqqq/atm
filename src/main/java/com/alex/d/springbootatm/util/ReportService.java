@@ -1,8 +1,10 @@
-package com.alex.d.springbootatm.service;
+package com.alex.d.springbootatm.util;
 
-import com.alex.d.springbootatm.dto.TransactionDto;
+import com.alex.d.springbootatm.model.dto.CardDto;
+import com.alex.d.springbootatm.model.dto.TransactionDto;
 import com.alex.d.springbootatm.model.CardModel;
-import com.alex.d.springbootatm.repository.CardRepository;
+import com.alex.d.springbootatm.service.atm.TransactionDetailsServiceImpl;
+import com.alex.d.springbootatm.service.card.CardService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -26,16 +28,13 @@ public class ReportService {
     private final String DATE_FORMAT = "dd.MM.yyyy | HH:mm:ss";
 
     @Autowired
-    private CardRepository cardRepository;
-
-    @Autowired
-    private TransactionServiceImpl transactionService;
+    private TransactionDetailsServiceImpl transactionService;
 
     @Autowired
     private DateTimeService dateTimeService;
 
     @Autowired
-    private ManagerService managerService;
+    private CardService cardService;
 
     public ResponseEntity generateClientReport() {
         String fileName = "Report.xlsx";
@@ -48,13 +47,13 @@ public class ReportService {
             createHeaderRow.createCell(1).setCellValue("Pin");
             createHeaderRow.createCell(2).setCellValue("Balance");
 
-            List<CardModel> cards = managerService.getAllCards();
+            List<CardDto> cards = cardService.getAllCards();
 
             int rowNum = 1;
-            for (CardModel card : cards) {
+            for (CardDto card : cards) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(card.getCardNumber());
-                row.createCell(1).setCellValue(card.getPinNumber());
+                row.createCell(1).setCellValue(card.getPin());
                 row.createCell(2).setCellValue(String.valueOf(card.getBalance()));
             }
 

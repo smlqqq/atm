@@ -1,9 +1,9 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.response.ErrorResponse;
-import com.alex.d.springbootatm.response.TransferResponse;
-import com.alex.d.springbootatm.service.AtmService;
+import com.alex.d.springbootatm.model.response.ErrorResponse;
+import com.alex.d.springbootatm.model.response.TransferResponse;
+import com.alex.d.springbootatm.service.atm.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -47,8 +47,8 @@ public class TransactionController {
             }
     )
     public ResponseEntity transferFundsToAnotherCard(
-            @Parameter(description = "Sender card number", required = true) @RequestParam("senderCardNumber") String senderCardNumber,
-            @Parameter(description = "Recipient card number", required = true) @RequestParam("recipientCardNumber") String recipientCardNumber,
+            @Parameter(description = "Sender card number", required = true) @RequestParam("sender") String sender,
+            @Parameter(description = "Recipient card number", required = true) @RequestParam("recipient") String recipient,
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount
     ) {
 
@@ -62,17 +62,17 @@ public class TransactionController {
         }
 
 
-        if (atmService.checkBalanceByCardNumber(senderCardNumber).getBalance().compareTo(amount) < 0) {
+        if (atmService.checkBalanceByCardNumber(sender).getBalance().compareTo(amount) < 0) {
             log.error("Insufficient funds on card:");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(Instant.now(),
                     "400",
                     "Insufficient funds on card",
-                    "/transfer/" + senderCardNumber));
+                    "/transfer/" + sender));
         }
 
         try {
-            log.info("Transactions of {} from card {} to card {} was successful.", amount, senderCardNumber, recipientCardNumber);
-            TransferResponse transactionResponse = atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount);
+            log.info("Transactions of {} from card {} to card {} was successful.", amount, sender, recipient);
+            TransferResponse transactionResponse = atmService.transferBetweenCards(sender, recipient, amount);
             return ResponseEntity.status(HttpStatus.OK).body(transactionResponse);
         } catch (CardNotFoundException e) {
 

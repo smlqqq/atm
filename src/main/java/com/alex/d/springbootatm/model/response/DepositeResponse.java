@@ -1,9 +1,11 @@
-package com.alex.d.springbootatm.response;
-
+package com.alex.d.springbootatm.model.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
@@ -11,15 +13,16 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class DepositResponse extends TransactionResponse {
+public class DepositeResponse {
 
     @JsonProperty("card number")
     @Schema(description = "card number", example = "4000009739800475")
     private String cardNumber;
 
-    @JsonProperty("balance")
-    @Schema(description = "card balance", example = "1000")
-    private BigDecimal balance;
+    @JsonProperty("deposit")
+    @Schema(description = "deposit amount", example = "1000")
+    private BigDecimal deposit;
 
 }
+
+

@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.response.BalanceResponse;
-import com.alex.d.springbootatm.response.TransactionResponse;
-import com.alex.d.springbootatm.service.AtmService;
+import com.alex.d.springbootatm.model.response.BalanceResponse;
+import com.alex.d.springbootatm.model.response.DepositeResponse;
+import com.alex.d.springbootatm.service.atm.AtmService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +33,7 @@ class AtmControllerTest {
 
         when(atmService.checkBalanceByCardNumber(cardNumber)).thenReturn(expectedResponse);
 
-        ResponseEntity<BalanceResponse> response = atmController.getBalance(cardNumber);
+        ResponseEntity<BalanceResponse> response = atmController.balance(cardNumber);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -45,7 +45,8 @@ class AtmControllerTest {
     void deposit() {
         String cardNumber = "4000007329214081";
         BigDecimal amount = BigDecimal.valueOf(500);
-        TransactionResponse transactionResponse = new TransactionResponse(cardNumber, amount);
+        DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount);
+        BalanceResponse expectedResponse = new BalanceResponse(cardNumber, amount);
 
         when(atmService.updateAccountBalance(cardNumber, amount, true)).thenReturn(transactionResponse);
 
@@ -54,8 +55,9 @@ class AtmControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(transactionResponse.getCardNumber(), ((TransactionResponse) response.getBody()).getCardNumber());
-        assertEquals(transactionResponse.getBalance(), ((TransactionResponse) response.getBody()).getBalance());
+        assertEquals(transactionResponse.getCardNumber(), ((DepositeResponse) response.getBody()).getCardNumber());
+        assertEquals(transactionResponse.getDeposit(), ((DepositeResponse) response.getBody()).getDeposit());
+        assertEquals(expectedResponse.getCardNumber(), expectedResponse.getBalance(), ((DepositeResponse) response.getBody()).getCardNumber());
 
     }
 
@@ -67,7 +69,7 @@ class AtmControllerTest {
         BigDecimal cardBalance = BigDecimal.valueOf(1000);
 
         BalanceResponse balanceResponse = new BalanceResponse(cardNumber, cardBalance);
-        TransactionResponse transactionResponse = new TransactionResponse(cardNumber, amount);
+        DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount);
 
         when(atmService.checkBalanceByCardNumber(cardNumber)).thenReturn(balanceResponse);
         when(atmService.updateAccountBalance(cardNumber, amount, false)).thenReturn(transactionResponse);
@@ -76,7 +78,7 @@ class AtmControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(transactionResponse.getCardNumber(), ((TransactionResponse) response.getBody()).getCardNumber());
+        assertEquals(transactionResponse.getCardNumber(), ((DepositeResponse) response.getBody()).getCardNumber());
 
     }
 }

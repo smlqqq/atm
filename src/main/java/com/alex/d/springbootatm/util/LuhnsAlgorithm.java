@@ -1,8 +1,5 @@
-package com.alex.d.springbootatm.service;
+package com.alex.d.springbootatm.util;
 
-import org.springframework.stereotype.Service;
-
-@Service
 public class LuhnsAlgorithm {
     protected static int calculateLuhnChecksum(String number) {
         int sum = 0;

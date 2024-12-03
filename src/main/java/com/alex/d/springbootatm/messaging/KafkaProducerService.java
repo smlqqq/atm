@@ -1,4 +1,4 @@
-package com.alex.d.springbootatm.kafka;
+package com.alex.d.springbootatm.messaging;
 
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,6 @@ public class KafkaProducerService {
 
     @Autowired
     private Gson gson;
-
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
