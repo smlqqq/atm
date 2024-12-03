@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm.repository;
 
-import com.alex.d.springbootatm.dto.TransactionDto;
+import com.alex.d.springbootatm.model.dto.TransactionDto;
 import com.alex.d.springbootatm.model.TransactionModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionModel, Long> {
 
-    @Query("SELECT new com.alex.d.springbootatm.dto.TransactionDto(" +
+    @Query("SELECT TransactionDto(" +
             "a.senderCard.cardNumber, " +
             "a.senderBalanceAfter, " +
             "a.transactionType, " +

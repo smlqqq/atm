@@ -1,17 +1,16 @@
-package com.alex.d.springbootatm.service;
+package com.alex.d.springbootatm.service.atm;
 
-import com.alex.d.springbootatm.dto.CardDto;
-import com.alex.d.springbootatm.dto.TransactionDto;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.kafka.KafkaProducerService;
-import com.alex.d.springbootatm.kafka.KafkaTopic;
+import com.alex.d.springbootatm.messaging.KafkaProducerService;
+import com.alex.d.springbootatm.messaging.KafkaTopic;
 import com.alex.d.springbootatm.model.AtmModel;
 import com.alex.d.springbootatm.model.CardModel;
 import com.alex.d.springbootatm.model.TransactionModel;
+import com.alex.d.springbootatm.model.dto.CardDto;
+import com.alex.d.springbootatm.model.dto.response.*;
 import com.alex.d.springbootatm.repository.AtmRepository;
 import com.alex.d.springbootatm.repository.CardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
-import com.alex.d.springbootatm.response.*;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,19 +34,25 @@ public class AtmServiceImpl implements AtmService {
     @Autowired
     private KafkaProducerService kafkaProducerService;
 
-    public CardModel fetchCardModel(String card) {
+    @Override
+    public CardModel fetchCardFromDb(String card) {
         return cardRepository.findByCardNumber(card)
                 .orElseThrow(() -> new CardNotFoundException("Card not found: " + card));
     }
 
+    @Override
+    @Transactional
     public void addAmountToBalance(String card, BigDecimal amount) {
         cardRepository.addBalance(card, amount);
     }
 
+    @Override
+    @Transactional
     public void subtractAmountFromBalance(String card, BigDecimal amount) {
         cardRepository.subtractBalance(card, amount);
     }
 
+    @Override
     public BigDecimal addOrSubtractBalance(String cardNumber, BigDecimal amount, boolean addAmount) {
         if (addAmount) {
             addAmountToBalance(cardNumber, amount);
@@ -59,8 +64,8 @@ public class AtmServiceImpl implements AtmService {
 
 
     @Override
-    public TransactionResponse updateAccountBalance(String cardNumber, BigDecimal amount, boolean isDeposit) {
-        CardModel card = fetchCardModel(cardNumber);
+    public CardResponse updateAccountBalance(String cardNumber, BigDecimal amount, boolean isDeposit) {
+        CardModel card = fetchCardFromDb(cardNumber);
 
         if (card != null) {
 
@@ -82,19 +87,27 @@ public class AtmServiceImpl implements AtmService {
             log.info("{} of {} for card {} was successful. Balance: {}",
                     isDeposit ? "Deposit" : "Withdrawal", amount, cardNumber, cardBalance);
 
-            // Отправка сообщения в Kafka
             kafkaProducerService.setKafkaProducerServiceMessage(
                     CardDto.builder()
                             .cardNumber(card.getCardNumber())
                             .balance(cardBalance)
+                            .pin("***")
                             .build(),
-                    KafkaTopic.ATM_TOPIC
+                    KafkaTopic.ATM_TOPIC.getTopicName()
             );
 
-            if (isDeposit) {
-                return new DepositResponse(cardNumber, cardBalance);
+            if (!isDeposit) {
+
+                return WithdrawResponse.builder()
+                        .cardNumber(cardNumber)
+                        .withdrawAmount(amount.toPlainString())
+                        .build();
             } else {
-                return new WithdrawResponse(cardNumber, amount, cardBalance);
+
+                return DepositeResponse.builder()
+                        .cardNumber(cardNumber)
+                        .depositAmount(amount.toPlainString())
+                        .build();
             }
         } else {
             log.warn("Attempted {} for non-existing card: {}", isDeposit ? "deposit" : "withdrawal", cardNumber);
@@ -105,10 +118,11 @@ public class AtmServiceImpl implements AtmService {
 
     @Override
     @Transactional
-    public TransferResponse transferBetweenCards(String senderCard, String recipientCard, BigDecimal amount) {
+    public TransactionResponse transferBetweenCards(String senderCard, String recipientCard, BigDecimal amount) {
 
-        CardModel senderModel = fetchCardModel(senderCard);
-        CardModel recipientModel = fetchCardModel(recipientCard);
+        CardModel senderModel = fetchCardFromDb(senderCard);
+        CardModel recipientModel = fetchCardFromDb(recipientCard);
+
 
         if (senderModel != null && recipientModel != null) {
 
@@ -132,24 +146,35 @@ public class AtmServiceImpl implements AtmService {
 
             transactionRepository.save(transactionModel);
             // Save updated sender and recipient cards
+
             cardRepository.save(senderModel);
             cardRepository.save(recipientModel);
+
             log.info("Transaction completed: Sender card {} balance {}, Recipient card {} balance {}, Amount {}",
                     senderModel.getCardNumber(), balanceAfterSubtract, recipientModel.getCardNumber(), newRecipientBalance, amount);
 
-            return new TransferResponse(senderCard, recipientCard, amount, balanceAfterSubtract, newRecipientBalance);
+            return TransactionResponse.builder()
+                    .senderCardNumber(senderCard)
+                    .recipientCardNumber(recipientCard)
+                    .transferredFunds(amount)
+                    .senderBalance(balanceAfterSubtract)
+                    .recipientBalance(newRecipientBalance)
+                    .build();
         }
 
-        log.error("card number not found");
+        log.error("card not found");
         return null;
     }
 
 
     @Override
     public BalanceResponse checkBalanceByCardNumber(String cardNumber) {
-        CardModel card = fetchCardModel(cardNumber);
+        CardModel card = fetchCardFromDb(cardNumber);
         BigDecimal balance = card.getBalance();
-        return new BalanceResponse(cardNumber, balance);
+        return BalanceResponse.builder()
+                .cardNumber(cardNumber)
+                .balance(balance)
+                .build();
     }
 
     @Override

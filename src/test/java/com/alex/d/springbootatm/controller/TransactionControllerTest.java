@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.response.BalanceResponse;
-import com.alex.d.springbootatm.response.TransferResponse;
-import com.alex.d.springbootatm.service.AtmService;
+import com.alex.d.springbootatm.model.dto.response.BalanceResponse;
+import com.alex.d.springbootatm.model.dto.response.TransactionResponse;
+import com.alex.d.springbootatm.service.atm.AtmService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,7 +34,7 @@ class TransactionControllerTest {
         BigDecimal senderBalance = BigDecimal.valueOf(500);
         BigDecimal recipientBalanceAfterTransfer = BigDecimal.valueOf(1000);
 
-        TransferResponse transferResponse = new TransferResponse(
+        TransactionResponse transactionResponse = new TransactionResponse(
                 senderCardNumber,
                 recipientCardNumber,
                 amount,
@@ -43,19 +43,19 @@ class TransactionControllerTest {
         );
 
         when(atmService.checkBalanceByCardNumber(senderCardNumber)).thenReturn(new BalanceResponse(senderCardNumber, senderBalance));
-        when(atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount)).thenReturn(transferResponse);
+        when(atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = transactionController.transferFundsToAnotherCard(senderCardNumber, recipientCardNumber, amount);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
-        TransferResponse actualResponse = (TransferResponse) response.getBody();
+        TransactionResponse actualResponse = (TransactionResponse) response.getBody();
 
-        assertEquals(transferResponse.getSenderCardNumber(), actualResponse.getSenderCardNumber());
-        assertEquals(transferResponse.getRecipientCardNumber(), actualResponse.getRecipientCardNumber());
-        assertEquals(transferResponse.getTransferred_funds(), actualResponse.getTransferred_funds());
-        assertEquals(transferResponse.getSender_balance(), actualResponse.getSender_balance());
-        assertEquals(transferResponse.getRecipient_balance(), actualResponse.getRecipient_balance());
+        assertEquals(transactionResponse.getSenderCardNumber(), actualResponse.getSenderCardNumber());
+        assertEquals(transactionResponse.getRecipientCardNumber(), actualResponse.getRecipientCardNumber());
+        assertEquals(transactionResponse.getTransferredFunds(), actualResponse.getTransferredFunds());
+        assertEquals(transactionResponse.getSenderBalance(), actualResponse.getSenderBalance());
+        assertEquals(transactionResponse.getRecipientBalance(), actualResponse.getRecipientBalance());
     }
 }

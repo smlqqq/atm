@@ -1,6 +1,6 @@
-package com.alex.d.springbootatm.service;
+package com.alex.d.springbootatm.service.atm;
 
-import com.alex.d.springbootatm.dto.TransactionDto;
+import com.alex.d.springbootatm.model.dto.TransactionDto;
 import com.alex.d.springbootatm.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class TransactionServiceImpl implements TransactionService {
+public class TransactionDetailsServiceImpl implements TransactionDetailsService {
 
     @Autowired
     private TransactionRepository transactionRepository;

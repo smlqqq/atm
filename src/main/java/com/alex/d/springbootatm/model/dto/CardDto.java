@@ -1,28 +1,26 @@
-package com.alex.d.springbootatm.response;
+package com.alex.d.springbootatm.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class TransactionResponse {
+@Value
+@Builder
+public class CardDto {
 
     @JsonProperty("card number")
     @Schema(description = "card number", example = "4000009739800475")
-    private String cardNumber;
+    String cardNumber;
+
+    @JsonProperty("pin")
+    @Schema(description = "pincode", example = "1111")
+    String pin;
 
     @JsonProperty("balance")
     @Schema(description = "card balance", example = "1000")
-    private BigDecimal balance;
+    BigDecimal balance;
 
 }
-
-
