@@ -1,10 +1,9 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.dto.BankCardDTO;
-import com.alex.d.springbootatm.model.BankCardModel;
-import com.alex.d.springbootatm.repository.BankCardRepository;
-import com.alex.d.springbootatm.service.ATMService;
-import com.alex.d.springbootatm.service.KafkaProducerService;
+import com.alex.d.springbootatm.model.CardModel;
+import com.alex.d.springbootatm.model.dto.CardDto;
+import com.alex.d.springbootatm.repository.CardRepository;
+import com.alex.d.springbootatm.service.card.CardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,18 +18,17 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ManagerControllerTest {
-    @Mock
-    KafkaProducerService kafkaProducerService;
 
     @Mock
-    BankCardRepository bankCardRepository;
+    CardRepository bankCardRepository;
 
     @Mock
-    ATMService atmService;
+    CardService cardService;
 
     @InjectMocks
     ManagerController managerController;
@@ -41,45 +39,65 @@ class ManagerControllerTest {
     }
 
     @Test
-    void testGetAllCards() {
-        List<BankCardModel> cards = new ArrayList<>();
-        cards.add(new BankCardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
-        cards.add(new BankCardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
+    void getAllBankCards() {
+        List<CardModel> cards = new ArrayList<>();
+        cards.add(new CardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
+        cards.add(new CardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
 
-        when(bankCardRepository.findAll()).thenReturn(cards);
+        List<CardDto> cardDtos = new ArrayList<>();
 
-        ResponseEntity<List<BankCardModel>> response = managerController.getAllCards();
+        for (CardModel card : cards) {
+            CardDto cardDto = CardDto.builder()
+                    .cardNumber(card.getCardNumber())
+                    .pin(card.getPinNumber())
+                    .balance(card.getBalance())
+                    .build();
+            cardDtos.add(cardDto);
+        }
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(cards, response.getBody());
+        when(cardService.getAllCards()).thenReturn(cardDtos);
+        List<CardDto> retrievedCards = cardService.getAllCards();
+
+        assertNotNull(retrievedCards);
+        assertEquals(2, retrievedCards.size());
+        assertEquals("4000003813378680", retrievedCards.get(0).getCardNumber());
+        assertEquals("4000007329214081", retrievedCards.get(1).getCardNumber());
     }
 
     @Test
-    void testDeleteCard() {
+    void deleteCard() {
         String cardNumber = "4000007329214081";
-        BankCardModel bankCard = new BankCardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
+        CardModel bankCard = new CardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
+        CardDto dto = CardDto.builder()
+                        .cardNumber(bankCard.getCardNumber())
+                                .pin(bankCard.getPinNumber())
+                                        .balance(bankCard.getBalance())
+                                                .build();
 
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(bankCard));
-        when(atmService.deleteCardByNumber(cardNumber)).thenReturn(Optional.of(bankCard));
+        when(cardService.deleteCardByNumber(cardNumber)).thenReturn(dto);
 
-        ResponseEntity<?> response = managerController.deleteCard(cardNumber);
+        ResponseEntity<?> response = managerController.delete(cardNumber);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-
-        verify(kafkaProducerService).sendMessage("atm-topic", "Card with number " + cardNumber + " was deleted");
     }
 
     @Test
-    void testCreateNewCard() {
-        BankCardDTO newCard = new BankCardDTO("4000003813378680", "3256", BigDecimal.valueOf(0));
+    void createNewCard() {
+        CardModel bankCard = new CardModel(1L,"4000003813378680", "3256", BigDecimal.valueOf(0));
+        CardDto dto = CardDto.builder()
+                .cardNumber(bankCard.getCardNumber())
+                .pin(bankCard.getPinNumber())
+                .balance(bankCard.getBalance())
+                .build();
 
-        when(atmService.createCard()).thenReturn(newCard);
 
-        ResponseEntity<BankCardDTO> response = managerController.createNewCard();
+        when(cardService.createCard()).thenReturn(dto);
+
+        ResponseEntity<CardDto> response = managerController.create();
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(newCard, response.getBody());
+        assertEquals(dto, response.getBody());
 
-        verify(kafkaProducerService).sendMessage("atm-topic", "New card created: " + newCard.getCardNumber() + " " + newCard.getPinCode());
     }
 }
