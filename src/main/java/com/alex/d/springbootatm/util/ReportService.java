@@ -42,10 +42,7 @@ public class ReportService {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Clients");
 
-            Row createHeaderRow = sheet.createRow(0);
-            createHeaderRow.createCell(0).setCellValue("Card");
-            createHeaderRow.createCell(1).setCellValue("Pin");
-            createHeaderRow.createCell(2).setCellValue("Balance");
+            addHeaders(sheet, "Card", "Pin", "Balance");
 
             List<CardDto> cards = cardService.getAllCards();
 
@@ -57,12 +54,7 @@ public class ReportService {
                 row.createCell(2).setCellValue(String.valueOf(card.getBalance()));
             }
 
-            Row getHeaderRow = sheet.getRow(0);
-            if (getHeaderRow != null) {
-                for (int i = 0; i < createHeaderRow.getPhysicalNumberOfCells(); i++) {
-                    sheet.autoSizeColumn(i);
-                }
-            }
+           autoSizeColumns(sheet,3);
 
             try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
                 workbook.write(outputStream);
@@ -80,15 +72,17 @@ public class ReportService {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Personal Data");
 
-            Row createHeaderRow = sheet.createRow(0);
-            createHeaderRow.createCell(0).setCellValue("Sender Card Number");
-            createHeaderRow.createCell(1).setCellValue("Sender Balance");
-            createHeaderRow.createCell(2).setCellValue("Transaction Type");
-            createHeaderRow.createCell(3).setCellValue("ATM Name");
-            createHeaderRow.createCell(4).setCellValue("Recipient Card Number");
-            createHeaderRow.createCell(5).setCellValue("Amount");
-            createHeaderRow.createCell(6).setCellValue("Recipient Balance");
-            createHeaderRow.createCell(7).setCellValue("Timestamp");
+            addHeaders(sheet,
+                    "Sender Card Number",
+                    "Sender Balance",
+                    "Transaction Type",
+                    "ATM Name",
+                    "Recipient Card Number",
+                    "Amount",
+                    "Recipient Balance",
+                    "Timestamp"
+            );
+
 
             List<TransactionDto> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
             if (!transactionDetails.isEmpty()) {
@@ -107,12 +101,7 @@ public class ReportService {
                 }
             }
 
-            Row getHeaderRow = sheet.getRow(0);
-            if (getHeaderRow != null) {
-                for (int i = 0; i < createHeaderRow.getPhysicalNumberOfCells(); i++) {
-                    sheet.autoSizeColumn(i);
-                }
-            }
+            autoSizeColumns(sheet, 8);
 
             try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
                 workbook.write(outputStream);
@@ -124,12 +113,25 @@ public class ReportService {
         return report(fileName);
     }
 
-    public ResponseEntity report(String fileName) {
+    private ResponseEntity report(String fileName) {
         File file = new File(fileName);
         Resource resource = new FileSystemResource(file);
         return ResponseEntity.status(HttpStatus.OK)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
                 .body(resource);
+    }
+
+    private void autoSizeColumns(Sheet sheet, int columnCount) {
+        for (int i = 0; i < columnCount; i++) {
+            sheet.autoSizeColumn(i);
+        }
+    }
+
+    private void addHeaders(Sheet sheet, String... headers) {
+        Row headerRow = sheet.createRow(0);
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.createCell(i).setCellValue(headers[i]);
+        }
     }
 
 }

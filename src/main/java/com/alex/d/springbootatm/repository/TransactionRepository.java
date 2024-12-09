@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionModel, Long> {
 
-    @Query("SELECT TransactionDto(" +
+    @Query("SELECT new com.alex.d.springbootatm.model.dto.TransactionDto(" +
             "a.senderCard.cardNumber, " +
             "a.senderBalanceAfter, " +
             "a.transactionType, " +

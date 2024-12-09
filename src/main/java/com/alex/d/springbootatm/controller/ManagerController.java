@@ -100,7 +100,8 @@ public class ManagerController {
 
     @PostMapping("/create")
     public ResponseEntity create() {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cardService.createCard());
+        CardDto card = cardService.createCard();
+        return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 
 
