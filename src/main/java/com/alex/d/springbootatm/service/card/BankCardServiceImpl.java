@@ -3,8 +3,8 @@ package com.alex.d.springbootatm.service.card;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.messaging.KafkaProducerService;
 import com.alex.d.springbootatm.messaging.KafkaTopic;
-import com.alex.d.springbootatm.model.CardModel;
-import com.alex.d.springbootatm.model.dto.CardDto;
+import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.dto.BankCardDto;
 import com.alex.d.springbootatm.repository.CardRepository;
 import com.alex.d.springbootatm.service.atm.AtmService;
 import jakarta.transaction.Transactional;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class CardServiceImpl implements CardService {
+public class BankCardServiceImpl implements BankCardService {
 
     @Autowired
     private CardRepository cardRepository;
@@ -26,13 +26,13 @@ public class CardServiceImpl implements CardService {
     @Autowired
     private AtmService atmService;
     @Autowired
-    private CardGenerationService cardGenerationService;
+    private BankCardGenerationService bankCardGenerationService;
 
     @Override
     @Transactional
-    public List<CardDto> getAllCards() {
+    public List<BankCardDto> getAllCards() {
         return cardRepository.findAll().stream()
-                .map(card -> CardDto.builder()
+                .map(card -> BankCardDto.builder()
                         .cardNumber(card.getCardNumber())
                         .pin(card.getPinNumber())
                         .balance(card.getBalance())
@@ -44,16 +44,15 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
-    public CardDto deleteCardByNumber(String cardNumber) {
+    public BankCardDto deleteCardByNumber(String cardNumber) {
 
-        Optional<CardModel> optCard = Optional.ofNullable(atmService.fetchCardFromDb(cardNumber));
+        Optional<BankCard> optCard = Optional.ofNullable(atmService.fetchCardFromDb(cardNumber));
 
         if (optCard.isPresent()) {
             cardRepository.delete(optCard.get());
             log.info("Card successfully deleted {}", cardNumber);
-            return CardDto.builder()
+            return BankCardDto.builder()
                     .cardNumber(optCard.get().getCardNumber())
-                    .pin(optCard.get().getPinNumber())
                     .balance(optCard.get().getBalance())
                     .build();
         } else {
@@ -64,25 +63,25 @@ public class CardServiceImpl implements CardService {
 
 
     @Override
-    public CardDto createCard() {
+    public BankCardDto createCard() {
 
-        String pinCode = cardGenerationService.generatePinCode();
+        String pinCode = bankCardGenerationService.generatePinCode();
 
-        CardModel cardModel = cardGenerationService.buildCardModel(pinCode);
+        BankCard bankCard = bankCardGenerationService.buildCardModel(pinCode);
 
-        CardDto savedCard = saveCardToDB(cardModel);
+        BankCardDto savedCard = saveCardToDB(bankCard);
 
         log.info("Card created and saved into db {} hashed pin code {}", savedCard.getCardNumber(), savedCard.getPin());
 
         kafkaProducerService.setKafkaProducerServiceMessage(
-                CardDto.builder()
+                BankCardDto.builder()
                         .cardNumber(savedCard.getCardNumber())
                         .pin("***")
                         .balance(savedCard.getBalance())
                         .build(),
                 KafkaTopic.KAFKA_MANAGER_TOPIC.getTopicName());
 
-        return CardDto.builder()
+        return BankCardDto.builder()
                 .cardNumber(savedCard.getCardNumber())
                 .pin(pinCode)
                 .balance(savedCard.getBalance())
@@ -92,9 +91,9 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
-    public CardDto saveCardToDB(CardModel card) {
-        CardModel savedCard = cardRepository.save(card);
-        return CardDto.builder()
+    public BankCardDto saveCardToDB(BankCard card) {
+        BankCard savedCard = cardRepository.save(card);
+        return BankCardDto.builder()
                 .cardNumber(savedCard.getCardNumber())
                 .pin(savedCard.getPinNumber())
                 .balance(savedCard.getBalance())

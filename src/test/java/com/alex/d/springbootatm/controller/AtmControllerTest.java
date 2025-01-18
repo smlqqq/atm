@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.dto.response.BalanceResponse;
-import com.alex.d.springbootatm.model.dto.response.DepositeResponse;
+import com.alex.d.springbootatm.model.response.BalanceResponse;
+import com.alex.d.springbootatm.model.response.DepositeResponse;
 import com.alex.d.springbootatm.service.atm.AtmService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

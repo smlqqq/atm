@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm.service.card;
 
-import com.alex.d.springbootatm.model.CardModel;
+import com.alex.d.springbootatm.model.BankCard;
 import com.alex.d.springbootatm.util.LuhnsAlgorithm;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.Random;
 
 @Service
-public class CardGenerationServiceImpl implements CardGenerationService {
+public class BankCardGenerationServiceImpl implements BankCardGenerationService {
 
     @Override
     public BigDecimal generateBalance() {
@@ -41,8 +41,8 @@ public class CardGenerationServiceImpl implements CardGenerationService {
     }
 
     @Override
-    public CardModel buildCardModel(String pin) {
-        return CardModel.builder()
+    public BankCard buildCardModel(String pin) {
+        return BankCard.builder()
                 .cardNumber(generateCreditCardNumber())
                 .pinNumber(hashPinCode(pin))
                 .balance(generateBalance())

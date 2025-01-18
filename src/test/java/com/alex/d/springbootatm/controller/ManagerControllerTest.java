@@ -1,9 +1,9 @@
 package com.alex.d.springbootatm.controller;
 
-import com.alex.d.springbootatm.model.CardModel;
-import com.alex.d.springbootatm.model.dto.CardDto;
+import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.dto.BankCardDto;
 import com.alex.d.springbootatm.repository.CardRepository;
-import com.alex.d.springbootatm.service.card.CardService;
+import com.alex.d.springbootatm.service.card.BankCardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,7 +28,7 @@ class ManagerControllerTest {
     CardRepository bankCardRepository;
 
     @Mock
-    CardService cardService;
+    BankCardService bankCardService;
 
     @InjectMocks
     ManagerController managerController;
@@ -40,23 +40,23 @@ class ManagerControllerTest {
 
     @Test
     void getAllBankCards() {
-        List<CardModel> cards = new ArrayList<>();
-        cards.add(new CardModel(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
-        cards.add(new CardModel(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
+        List<BankCard> cards = new ArrayList<>();
+        cards.add(new BankCard(1L, "4000003813378680", "5356", BigDecimal.valueOf(300)));
+        cards.add(new BankCard(2L, "4000007329214081", "3256", BigDecimal.valueOf(500)));
 
-        List<CardDto> cardDtos = new ArrayList<>();
+        List<BankCardDto> bankCardDtos = new ArrayList<>();
 
-        for (CardModel card : cards) {
-            CardDto cardDto = CardDto.builder()
+        for (BankCard card : cards) {
+            BankCardDto bankCardDto = BankCardDto.builder()
                     .cardNumber(card.getCardNumber())
                     .pin(card.getPinNumber())
                     .balance(card.getBalance())
                     .build();
-            cardDtos.add(cardDto);
+            bankCardDtos.add(bankCardDto);
         }
 
-        when(cardService.getAllCards()).thenReturn(cardDtos);
-        List<CardDto> retrievedCards = cardService.getAllCards();
+        when(bankCardService.getAllCards()).thenReturn(bankCardDtos);
+        List<BankCardDto> retrievedCards = bankCardService.getAllCards();
 
         assertNotNull(retrievedCards);
         assertEquals(2, retrievedCards.size());
@@ -67,15 +67,15 @@ class ManagerControllerTest {
     @Test
     void deleteCard() {
         String cardNumber = "4000007329214081";
-        CardModel bankCard = new CardModel(1L, cardNumber, "5356", BigDecimal.valueOf(300));
-        CardDto dto = CardDto.builder()
+        BankCard bankCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(300));
+        BankCardDto dto = BankCardDto.builder()
                         .cardNumber(bankCard.getCardNumber())
                                 .pin(bankCard.getPinNumber())
                                         .balance(bankCard.getBalance())
                                                 .build();
 
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(bankCard));
-        when(cardService.deleteCardByNumber(cardNumber)).thenReturn(dto);
+        when(bankCardService.deleteCardByNumber(cardNumber)).thenReturn(dto);
 
         ResponseEntity<?> response = managerController.delete(cardNumber);
 
@@ -84,17 +84,17 @@ class ManagerControllerTest {
 
     @Test
     void createNewCard() {
-        CardModel bankCard = new CardModel(1L,"4000003813378680", "3256", BigDecimal.valueOf(0));
-        CardDto dto = CardDto.builder()
+        BankCard bankCard = new BankCard(1L,"4000003813378680", "3256", BigDecimal.valueOf(0));
+        BankCardDto dto = BankCardDto.builder()
                 .cardNumber(bankCard.getCardNumber())
                 .pin(bankCard.getPinNumber())
                 .balance(bankCard.getBalance())
                 .build();
 
 
-        when(cardService.createCard()).thenReturn(dto);
+        when(bankCardService.createCard()).thenReturn(dto);
 
-        ResponseEntity<CardDto> response = managerController.create();
+        ResponseEntity<BankCardDto> response = managerController.create();
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(dto, response.getBody());

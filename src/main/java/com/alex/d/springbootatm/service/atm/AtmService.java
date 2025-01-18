@@ -1,10 +1,10 @@
 package com.alex.d.springbootatm.service.atm;
 
-import com.alex.d.springbootatm.model.AtmModel;
-import com.alex.d.springbootatm.model.CardModel;
-import com.alex.d.springbootatm.model.dto.response.BalanceResponse;
-import com.alex.d.springbootatm.model.dto.response.CardResponse;
-import com.alex.d.springbootatm.model.dto.response.TransactionResponse;
+import com.alex.d.springbootatm.model.Atm;
+import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.model.response.BalanceResponse;
+import com.alex.d.springbootatm.model.response.CardResponse;
+import com.alex.d.springbootatm.model.response.TransactionResponse;
 
 import java.math.BigDecimal;
 
@@ -14,11 +14,11 @@ public interface AtmService {
 
     BalanceResponse checkBalanceByCardNumber(String cardNumber);
 
-    AtmModel returnAtmName();
+    Atm returnAtmName();
 
     CardResponse updateAccountBalance(String cardNumber, BigDecimal amount, boolean isDeposit);
 
-    CardModel fetchCardFromDb(String card);
+    BankCard fetchCardFromDb(String card);
 
     void addAmountToBalance(String card, BigDecimal amount);
 

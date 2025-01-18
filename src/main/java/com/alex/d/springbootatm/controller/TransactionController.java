@@ -1,8 +1,8 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.dto.response.ErrorResponse;
-import com.alex.d.springbootatm.model.dto.response.TransactionResponse;
+import com.alex.d.springbootatm.model.response.ErrorResponse;
+import com.alex.d.springbootatm.model.response.TransactionResponse;
 import com.alex.d.springbootatm.service.atm.AtmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,7 +43,7 @@ public class TransactionController {
                     })
             }
     )
-    public ResponseEntity transferFundsToAnotherCard(
+    public ResponseEntity transfer(
             @Parameter(description = "Sender card number", required = true) @RequestParam("sender") String sender,
             @Parameter(description = "Recipient card number", required = true) @RequestParam("recipient") String recipient,
             @Parameter(description = "Transfer amount", required = true) @RequestParam("amount") BigDecimal amount

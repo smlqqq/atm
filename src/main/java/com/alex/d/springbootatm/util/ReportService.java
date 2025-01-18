@@ -1,15 +1,13 @@
 package com.alex.d.springbootatm.util;
 
-import com.alex.d.springbootatm.model.dto.CardDto;
-import com.alex.d.springbootatm.model.dto.TransactionDto;
-import com.alex.d.springbootatm.model.CardModel;
-import com.alex.d.springbootatm.service.atm.TransactionDetailsServiceImpl;
-import com.alex.d.springbootatm.service.card.CardService;
+import com.alex.d.springbootatm.dto.BankCardDto;
+import com.alex.d.springbootatm.dto.BankCardTransactionDto;
+import com.alex.d.springbootatm.service.atm.BankCardTransactionDetailsServiceImpl;
+import com.alex.d.springbootatm.service.card.BankCardService;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -27,14 +25,16 @@ public class ReportService {
 
     private final String DATE_FORMAT = "dd.MM.yyyy | HH:mm:ss";
 
-    @Autowired
-    private TransactionDetailsServiceImpl transactionService;
+    private final BankCardTransactionDetailsServiceImpl transactionService;
+    private final DateTimeService dateTimeService;
+    private final BankCardService bankCardService;
 
-    @Autowired
-    private DateTimeService dateTimeService;
+    public ReportService(BankCardTransactionDetailsServiceImpl transactionService, DateTimeService dateTimeService, BankCardService bankCardService) {
+        this.transactionService = transactionService;
+        this.dateTimeService = dateTimeService;
+        this.bankCardService = bankCardService;
+    }
 
-    @Autowired
-    private CardService cardService;
 
     public ResponseEntity generateClientReport() {
         String fileName = "Report.xlsx";
@@ -44,17 +44,17 @@ public class ReportService {
 
             addHeaders(sheet, "Card", "Pin", "Balance");
 
-            List<CardDto> cards = cardService.getAllCards();
+            List<BankCardDto> cards = bankCardService.getAllCards();
 
             int rowNum = 1;
-            for (CardDto card : cards) {
+            for (BankCardDto card : cards) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(card.getCardNumber());
                 row.createCell(1).setCellValue(card.getPin());
                 row.createCell(2).setCellValue(String.valueOf(card.getBalance()));
             }
 
-           autoSizeColumns(sheet,3);
+            autoSizeColumns(sheet, 3);
 
             try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
                 workbook.write(outputStream);
@@ -84,10 +84,10 @@ public class ReportService {
             );
 
 
-            List<TransactionDto> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
+            List<BankCardTransactionDto> transactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
             if (!transactionDetails.isEmpty()) {
                 int rowNum = 1;
-                for (TransactionDto transaction : transactionDetails) {
+                for (BankCardTransactionDto transaction : transactionDetails) {
                     Row row = sheet.createRow(rowNum++);
 
                     row.createCell(0).setCellValue(transaction.getSender());
