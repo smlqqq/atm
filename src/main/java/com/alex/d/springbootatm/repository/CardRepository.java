@@ -18,8 +18,7 @@ public interface CardRepository extends JpaRepository<BankCard, Long> {
 
    Optional<BankCard> findByCardNumber(String cardNum);
 
-
-   @Query("SELECT new com.alex.d.springbootatm.model.dto.BankCardDto(c.cardNumber, c.pinNumber, c.balance) " +
+   @Query("SELECT new com.alex.d.springbootatm.dto.BankCardDto(c.cardNumber, c.pinNumber, c.balance) " +
            "FROM BankCard c " +
            "WHERE c.cardNumber = :cardNum")
    BankCardDto getAccountDetailsByCardNumber(@Param("cardNum") String cardNum);
