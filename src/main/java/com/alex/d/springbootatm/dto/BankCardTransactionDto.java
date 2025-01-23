@@ -1,6 +1,5 @@
-package com.alex.d.springbootatm.model.dto;
+package com.alex.d.springbootatm.dto;
 
-import com.alex.d.springbootatm.model.AtmModel;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -8,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Value
 @Builder
-public class TransactionDto {
+public class BankCardTransactionDto {
 
     String sender;
     BigDecimal senderBalance;

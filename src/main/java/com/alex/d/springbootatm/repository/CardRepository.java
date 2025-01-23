@@ -1,7 +1,7 @@
 package com.alex.d.springbootatm.repository;
 
-import com.alex.d.springbootatm.model.dto.CardDto;
-import com.alex.d.springbootatm.model.CardModel;
+import com.alex.d.springbootatm.model.BankCard;
+import com.alex.d.springbootatm.dto.BankCardDto;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,29 +14,23 @@ import java.util.Optional;
 
 
 @Repository
-public interface CardRepository extends JpaRepository<CardModel, Long> {
+public interface CardRepository extends JpaRepository<BankCard, Long> {
 
-   Optional<CardModel> findByCardNumber(String cardNum);
+   Optional<BankCard> findByCardNumber(String cardNum);
 
-
-   @Query("SELECT CardDto(c.balance) " +
-           "FROM CardModel c " +
+   @Query("SELECT new com.alex.d.springbootatm.dto.BankCardDto(c.cardNumber, c.pinNumber, c.balance) " +
+           "FROM BankCard c " +
            "WHERE c.cardNumber = :cardNum")
-   CardDto getBankCardBalanceByCardNumber(@Param("cardNum") String cardNum);
-
-   @Query("SELECT CardDto(c.cardNumber, c.pinNumber, c.balance) " +
-           "FROM CardModel c " +
-           "WHERE c.cardNumber = :cardNum")
-   CardDto getBankCardDetailsByCardNumber(@Param("cardNum") String cardNum);
+   BankCardDto getAccountDetailsByCardNumber(@Param("cardNum") String cardNum);
 
    @Modifying
    @Transactional
-   @Query("UPDATE CardModel c SET c.balance = c.balance + :amount WHERE c.cardNumber = :cardNumber")
+   @Query("UPDATE BankCard c SET c.balance = c.balance + :amount WHERE c.cardNumber = :cardNumber")
    void addBalance(@Param("cardNumber") String cardNumber, @Param("amount") BigDecimal amount);
 
    @Modifying
    @Transactional
-   @Query("UPDATE CardModel c SET c.balance = c.balance - :amount WHERE c.cardNumber = :cardNumber")
+   @Query("UPDATE BankCard c SET c.balance = c.balance - :amount WHERE c.cardNumber = :cardNumber")
    void subtractBalance(@Param("cardNumber") String cardNumber, @Param("amount") BigDecimal amount);
 
 }

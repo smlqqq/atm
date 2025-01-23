@@ -1,15 +1,14 @@
-package com.alex.d.springbootatm.model.dto;
+package com.alex.d.springbootatm.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Value
 @Builder
-public class CardDto {
+public class BankCardDto {
 
     @JsonProperty("card number")
     @Schema(description = "card number", example = "4000009739800475")

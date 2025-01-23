@@ -1,10 +1,8 @@
-package com.alex.d.springbootatm.model.dto.response;
+package com.alex.d.springbootatm.model.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter

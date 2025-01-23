@@ -1,9 +1,9 @@
 package com.alex.d.springbootatm.controller;
 
 import com.alex.d.springbootatm.exception.CardNotFoundException;
-import com.alex.d.springbootatm.model.dto.CardDto;
-import com.alex.d.springbootatm.model.dto.response.ErrorResponse;
-import com.alex.d.springbootatm.service.card.CardService;
+import com.alex.d.springbootatm.dto.BankCardDto;
+import com.alex.d.springbootatm.model.response.ErrorResponse;
+import com.alex.d.springbootatm.service.card.BankCardService;
 import com.alex.d.springbootatm.util.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +26,7 @@ import java.util.List;
 public class ManagerController {
 
     @Autowired
-    private CardService cardService;
+    private BankCardService bankCardService;
 
     @Autowired
     private ReportService reportService;
@@ -37,13 +37,13 @@ public class ManagerController {
             description = "Retrieve details of all bank cards",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardDto.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardDto.class))
                     })
             }
     )
     @GetMapping("/bank-cards/all")
-    public ResponseEntity<List<CardDto>> cards() {
-        List<CardDto> cards = cardService.getAllCards();
+    public ResponseEntity<List<BankCardDto>> cards() {
+        List<BankCardDto> cards = bankCardService.getAllCards();
         if (cards.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -56,7 +56,7 @@ public class ManagerController {
             description = "Delete all details about card",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardDto.class))}),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardDto.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
                     @ApiResponse(responseCode = "404", description = "Not found", content = {
@@ -72,11 +72,11 @@ public class ManagerController {
         }
 
         try {
-            CardDto cardDto = cardService.deleteCardByNumber(card);
-            return ResponseEntity.status(HttpStatus.OK).body(CardDto.builder()
-                    .cardNumber(cardDto.getCardNumber())
-                    .pin(cardDto.getPin())
-                    .balance(cardDto.getBalance())
+            BankCardDto bankCardDto = bankCardService.deleteCardByNumber(card);
+            return ResponseEntity.status(HttpStatus.OK).body(BankCardDto.builder()
+                    .cardNumber(bankCardDto.getCardNumber())
+                    .pin(bankCardDto.getPin())
+                    .balance(bankCardDto.getBalance())
                     .build()
             );
         } catch (CardNotFoundException e) {
@@ -91,7 +91,7 @@ public class ManagerController {
             description = "Create a new bank card using the provided details",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardDto.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardDto.class))
                     })
 
             }
@@ -100,7 +100,7 @@ public class ManagerController {
 
     @PostMapping("/create")
     public ResponseEntity create() {
-        CardDto card = cardService.createCard();
+        BankCardDto card = bankCardService.createCard();
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 
