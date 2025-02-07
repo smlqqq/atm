@@ -7,12 +7,14 @@ import java.util.List;
 
 public interface BankCardService {
 
-    List<BankCardDto> getAllCards();
+    List<BankCardDto> fetchAllBankCardsData();
 
-    BankCardDto deleteCardByNumber(String cardNumber);
+    BankCardDto deleteBankCardByNumber(String cardNumber);
 
-    BankCardDto createCard();
+    BankCardDto createBankCard();
 
-    BankCardDto saveCardToDB(BankCard card);
+    BankCardDto saveBankCardToDB(BankCard card);
+
+    BankCard fetchCardFromDb(String card);
 
 }

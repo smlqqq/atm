@@ -1,7 +1,6 @@
 package com.alex.d.springbootatm.service.atm;
 
 import com.alex.d.springbootatm.dto.BankCardDto;
-import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.messaging.KafkaProducerService;
 import com.alex.d.springbootatm.messaging.KafkaTopic;
 import com.alex.d.springbootatm.model.Atm;
@@ -11,9 +10,9 @@ import com.alex.d.springbootatm.model.response.*;
 import com.alex.d.springbootatm.repository.AtmRepository;
 import com.alex.d.springbootatm.repository.CardRepository;
 import com.alex.d.springbootatm.repository.TransactionRepository;
+import com.alex.d.springbootatm.service.card.BankCardService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,25 +24,25 @@ import java.util.Random;
 @Service
 public class AtmServiceImpl implements AtmService {
 
-    @Autowired
-    private TransactionRepository transactionRepository;
-    @Autowired
-    private CardRepository cardRepository;
-    @Autowired
-    private AtmRepository atmRepository;
-    @Autowired
-    private KafkaProducerService kafkaProducerService;
+    private final TransactionRepository transactionRepository;
+    private final CardRepository cardRepository;
+    private final AtmRepository atmRepository;
+    private final KafkaProducerService kafkaProducerService;
+    private final BankCardService cardService;
 
-    @Override
-    public BankCard fetchCardFromDb(String card) {
-        return cardRepository.findByCardNumber(card)
-                .orElseThrow(() -> new CardNotFoundException("Card not found: " + card));
+    public AtmServiceImpl(TransactionRepository transactionRepository, CardRepository cardRepository, AtmRepository atmRepository, KafkaProducerService kafkaProducerService, BankCardService cardService) {
+        this.transactionRepository = transactionRepository;
+        this.cardRepository = cardRepository;
+        this.atmRepository = atmRepository;
+        this.kafkaProducerService = kafkaProducerService;
+        this.cardService = cardService;
     }
 
-    public BigDecimal fetchBankCardBalance(String cardNumber) {
-        BankCard card = fetchCardFromDb(cardNumber);
-        return card.getBalance();
-    }
+
+//    public BigDecimal fetchBankCardBalance(String cardNumber) {
+//        BankCard card = fetchCardFromDb(cardNumber);
+//        return card.getBalance();
+//    }
 
     @Override
     @Transactional
@@ -72,7 +71,7 @@ public class AtmServiceImpl implements AtmService {
     @Override
     public DepositeResponse processDeposit(String cardNumber, BigDecimal amount) {
 
-        BankCard card = fetchCardFromDb(cardNumber);
+        BankCard card = cardService.fetchCardFromDb(cardNumber);
 
         BigDecimal cardBalance = addAmountToBankCardBalance(cardNumber, amount);
 
@@ -94,7 +93,7 @@ public class AtmServiceImpl implements AtmService {
     @Override
     public WithdrawResponse processWithdrawal(String cardNumber, BigDecimal amount) {
 
-        BankCard card = fetchCardFromDb(cardNumber);
+        BankCard card = cardService.fetchCardFromDb(cardNumber);
 
         BigDecimal cardBalance = subtractAmountFromBankCardBalance(cardNumber, amount);
 
@@ -118,9 +117,9 @@ public class AtmServiceImpl implements AtmService {
     @Transactional
     public TransactionResponse processCardTransaction(String senderCard, String recipientCard, BigDecimal amount) {
 
-        BankCard sender = fetchCardFromDb(senderCard);
+        BankCard sender = cardService.fetchCardFromDb(senderCard);
 
-        BankCard recipient = fetchCardFromDb(recipientCard);
+        BankCard recipient = cardService.fetchCardFromDb(recipientCard);
 
         // Update sender's balance
         BigDecimal balanceAfterSubtract = addOrSubtractAmountFromBalance(senderCard, amount, false);
@@ -146,35 +145,95 @@ public class AtmServiceImpl implements AtmService {
 
     }
 
-    public BankCardTransaction processCardTransaction(String transactionType, BigDecimal amount, BankCard sender, BankCard recipient, BigDecimal balanceAfterSubtract, BigDecimal newRecipientBalance) {
+    public BankCardTransaction processCardTransaction(String transactionType, BigDecimal amount, BankCard sender, BankCard recipient, BigDecimal senderBalanceAfterSubtract, BigDecimal newRecipientBalance) {
+        validateParams(transactionType, amount, sender, recipient, senderBalanceAfterSubtract);
         // Create a new transaction
+        return initBuilder(transactionType, amount)
+                .senderCard(sender)
+                .recipientCard(recipient)
+                .senderBalanceAfter(senderBalanceAfterSubtract)
+                .recipientBalanceAfter(newRecipientBalance)
+                .build();
+
+//        return BankCardTransaction.builder()
+//                .transactionType(transactionType)
+//                .amount(amount)
+//                .timestamp(LocalDateTime.now())
+//                .senderCard(sender)
+//                .recipientCard(recipient)
+//                // Set balances after transaction in the transaction model
+//                .senderBalanceAfter(senderBalanceAfterSubtract)
+//                .recipientBalanceAfter(newRecipientBalance)
+//                .build();
+    }
+
+    private BankCardTransaction.BankCardTransactionBuilder initBuilder(String transactionType, BigDecimal amount) {
         return BankCardTransaction.builder()
                 .transactionType(transactionType)
                 .amount(amount)
-                .timestamp(LocalDateTime.now())
-                .senderCard(sender)
-                .recipientCard(recipient)
-                // Set balances after transaction in the transaction model
-                .senderBalanceAfter(balanceAfterSubtract)
-                .recipientBalanceAfter(newRecipientBalance)
+                .timestamp(LocalDateTime.now());
+    }
+
+    private void validateParams(String transactionType, BigDecimal amount, BankCard sender,
+                                BankCard recipient, BigDecimal senderBalance) {
+        if (transactionType == null || amount == null || sender == null || recipient == null
+                || senderBalance == null) {
+            log.error("Invalid transaction parameters");
+            throw new IllegalArgumentException("Parameters cannot be null");
+        }
+        if (senderBalance.compareTo(BigDecimal.ZERO) < 0) {
+            log.error("Sender balance is less than zero");
+            throw new IllegalArgumentException("Balance cannot be negative");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            log.error("Amount is less than zero");
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+    }
+
+    public BankCardTransaction processAtmTransaction(
+            String transactionType,
+            BigDecimal amount,
+            BankCard card,
+            BigDecimal recipientBalanceAfter) {
+
+        validateParams(transactionType, amount, card, recipientBalanceAfter);
+
+        return initBuilder(transactionType, amount)
+                .senderAtm(returnAtmName())
+                .recipientCard(card)
+                .senderBalanceAfter(null) // Явное указание, если требуется
+                .recipientBalanceAfter(recipientBalanceAfter)
                 .build();
     }
 
-    public BankCardTransaction processAtmTransaction(String transactionType, BigDecimal amount, BankCard card, BigDecimal cardBalance) {
-        // Create a new transaction
-        return BankCardTransaction.builder()
-                .transactionType(transactionType)
-                .amount(amount)
-                .timestamp(LocalDateTime.now())
-                .senderAtm(returnAtmName())
-                .recipientCard(card)
-                .recipientBalanceAfter(cardBalance)
-                .build();
+    private void validateParams(String transactionType, BigDecimal amount,
+                                BankCard card, BigDecimal recipientBalance) {
+        if (transactionType == null || amount == null || card == null || recipientBalance == null) {
+            log.error("Invalid transaction parameters");
+            throw new IllegalArgumentException("Parameters cannot be null");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            log.error("Amount is less than zero");
+            throw new IllegalArgumentException("Amount must be positive");
+        }
     }
+
+//    public BankCardTransaction processAtmTransaction(String transactionType, BigDecimal amount, BankCard card, BigDecimal cardBalance) {
+//        // Create a new transaction
+//        return BankCardTransaction.builder()
+//                .transactionType(transactionType)
+//                .amount(amount)
+//                .timestamp(LocalDateTime.now())
+//                .senderAtm(returnAtmName())
+//                .recipientCard(card)
+//                .recipientBalanceAfter(cardBalance)
+//                .build();
+//    }
 
     @Override
     public BalanceResponse checkBalanceByCardNumber(String cardNumber) {
-        BankCard card = fetchCardFromDb(cardNumber);
+        BankCard card = cardService.fetchCardFromDb(cardNumber);
         BigDecimal balance = card.getBalance();
         return BalanceResponse.builder()
                 .cardNumber(cardNumber)

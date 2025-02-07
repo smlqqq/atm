@@ -8,11 +8,13 @@ public interface BankCardGenerationService {
 
     BankCard buildCardModel(String pin);
 
-    String hashPinCode(String pinCode);
+//    String passwordEncode(String pinCode);
 
-    String generatePinCode();
+//    String generatePinCode();
 
-    String generateCreditCardNumber();
+    char[] pinCodeGenerator();
+
+    String bankCardNumGenerator();
 
     BigDecimal generateBalance();
 

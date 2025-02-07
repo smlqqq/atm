@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class DateTimeService {
 
+    private final String DATE_FORMAT = "dd.MM.yyyy | HH:mm:ss";
     public String getFormatedDateTime(String inputDate, String outputFormat) {
         LocalDateTime date = LocalDateTime.parse(inputDate);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(outputFormat);

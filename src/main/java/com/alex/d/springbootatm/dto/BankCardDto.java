@@ -14,10 +14,6 @@ public class BankCardDto {
     @Schema(description = "card number", example = "4000009739800475")
     String cardNumber;
 
-    @JsonProperty("pin")
-    @Schema(description = "pincode", example = "1111")
-    String pin;
-
     @JsonProperty("balance")
     @Schema(description = "card balance", example = "1000")
     BigDecimal balance;
