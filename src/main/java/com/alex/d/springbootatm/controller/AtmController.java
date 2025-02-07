@@ -101,7 +101,9 @@ public class AtmController {
 
         try {
 
-            CardResponse depositResponse = atmService.updateAccountBalance(card, amount, true);
+//            CardResponse depositResponse = atmService.processWithdrawalOrDeposit(card, amount, true);
+            CardResponse depositResponse = atmService.processAtmTransaction(card, amount, "DEPOSIT");
+
             log.info("Balance {} increased successfully for card {}", amount, card);
 
             return ResponseEntity.status(HttpStatus.OK).body(depositResponse);
@@ -134,18 +136,18 @@ public class AtmController {
             @Parameter(description = "Card number", required = true) @RequestParam("card") String card,
             @Parameter(description = "Amount to withdraw", required = true) @RequestParam("amount") BigDecimal amount) {
 
-        BigDecimal cardBalance = atmService.checkBalanceByCardNumber(card).getBalance();
-
-        if (cardBalance.compareTo(amount) < 0) {
-            log.error("Insufficient funds on your card: {} balance: {}, requested withdrawal: {}", card, cardBalance, amount);
-            ErrorResponse errorResponse = new ErrorResponse(
-                    Instant.now(),
-                    "400",
-                    "Failed to withdraw funds. Insufficient balance: " + cardBalance,
-                    "/withdraw/" + card
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
+//        BigDecimal cardBalance = atmService.checkBalanceByCardNumber(card).getBalance();
+//
+//        if (cardBalance.compareTo(amount) < 0) {
+//            log.error("Insufficient funds on your card: {} balance: {}, requested withdrawal: {}", card, cardBalance, amount);
+//            ErrorResponse errorResponse = new ErrorResponse(
+//                    Instant.now(),
+//                    "400",
+//                    "Failed to withdraw funds. Insufficient balance: " + cardBalance,
+//                    "/withdraw/" + card
+//            );
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+//        }
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             log.error("Invalid withdraw amount: {}", amount);
@@ -157,7 +159,8 @@ public class AtmController {
         }
 
         try {
-            CardResponse withdrawResponse = atmService.updateAccountBalance(card, amount, false);
+//            CardResponse withdrawResponse = atmService.processWithdrawalOrDeposit(card, amount, false);
+            CardResponse withdrawResponse = atmService.processAtmTransaction(card, amount, "WITHDRAW");
             log.info("Balance for card {} decreased {}", card, amount);
             return ResponseEntity.status(HttpStatus.OK).body(withdrawResponse);
         } catch (CardNotFoundException e) {

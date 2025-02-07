@@ -55,8 +55,8 @@ class ManagerControllerTest {
             bankCardDtos.add(bankCardDto);
         }
 
-        when(bankCardService.getAllCards()).thenReturn(bankCardDtos);
-        List<BankCardDto> retrievedCards = bankCardService.getAllCards();
+        when(bankCardService.fetchAllBankCardsData()).thenReturn(bankCardDtos);
+        List<BankCardDto> retrievedCards = bankCardService.fetchAllBankCardsData();
 
         assertNotNull(retrievedCards);
         assertEquals(2, retrievedCards.size());
@@ -75,7 +75,7 @@ class ManagerControllerTest {
                                                 .build();
 
         when(bankCardRepository.findByCardNumber(cardNumber)).thenReturn(Optional.of(bankCard));
-        when(bankCardService.deleteCardByNumber(cardNumber)).thenReturn(dto);
+        when(bankCardService.deleteBankCardByNumber(cardNumber)).thenReturn(dto);
 
         ResponseEntity<?> response = managerController.delete(cardNumber);
 
@@ -92,7 +92,7 @@ class ManagerControllerTest {
                 .build();
 
 
-        when(bankCardService.createCard()).thenReturn(dto);
+        when(bankCardService.createBankCard()).thenReturn(dto);
 
         ResponseEntity<BankCardDto> response = managerController.create();
 

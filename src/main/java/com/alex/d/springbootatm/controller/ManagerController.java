@@ -1,10 +1,13 @@
 package com.alex.d.springbootatm.controller;
 
+import com.alex.d.springbootatm.dto.BankCardTransactionDto;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.dto.BankCardDto;
 import com.alex.d.springbootatm.model.response.ErrorResponse;
+import com.alex.d.springbootatm.service.atm.BankCardTransactionDetailsService;
 import com.alex.d.springbootatm.service.card.BankCardService;
 import com.alex.d.springbootatm.util.ReportService;
+import com.alex.d.springbootatm.util.ReportServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,6 +34,9 @@ public class ManagerController {
     @Autowired
     private ReportService reportService;
 
+    @Autowired
+    private BankCardTransactionDetailsService transactionService;
+
 
     @Operation(
             summary = "Get all data",
@@ -43,7 +49,7 @@ public class ManagerController {
     )
     @GetMapping("/bank-cards/all")
     public ResponseEntity<List<BankCardDto>> cards() {
-        List<BankCardDto> cards = bankCardService.getAllCards();
+        List<BankCardDto> cards = bankCardService.fetchAllBankCardsData();
         if (cards.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -72,10 +78,9 @@ public class ManagerController {
         }
 
         try {
-            BankCardDto bankCardDto = bankCardService.deleteCardByNumber(card);
+            BankCardDto bankCardDto = bankCardService.deleteBankCardByNumber(card);
             return ResponseEntity.status(HttpStatus.OK).body(BankCardDto.builder()
                     .cardNumber(bankCardDto.getCardNumber())
-                    .pin(bankCardDto.getPin())
                     .balance(bankCardDto.getBalance())
                     .build()
             );
@@ -100,7 +105,7 @@ public class ManagerController {
 
     @PostMapping("/create")
     public ResponseEntity create() {
-        BankCardDto card = bankCardService.createCard();
+        BankCardDto card = bankCardService.createBankCard();
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 
@@ -116,8 +121,14 @@ public class ManagerController {
             }
     )
     @GetMapping("/cards/export/excel")
-    public ResponseEntity exportAllBankCardsReportToExcel() {
-        return reportService.generateClientReport();
+    public ResponseEntity<?> exportAllBankCardsReportToExcel() {
+//        return reportServiceImpl.generateReport();
+
+        List<BankCardDto> cardsDetails = bankCardService.fetchAllBankCardsData();
+        String[] headers = {"Card", "Hashed Pin", "Balance"};
+
+        return reportService.reportConfig("report.xls", "clients", cardsDetails, headers);
+
     }
 
     @Operation(
@@ -132,8 +143,21 @@ public class ManagerController {
     )
 
     @GetMapping("/cards/export/excel/{card}")
-    public ResponseEntity exportIndividualClientReportToExcel(@PathVariable("card") String card) {
-        return reportService.generateIndividualClientReport(card);
+    public ResponseEntity<?> exportIndividualClientReportToExcel(@PathVariable("card") String cardNumber) {
+//        return reportServiceImpl.generateReportByCardNumber(card);
+        List<BankCardTransactionDto> cardTransactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
+
+        String fileName = cardNumber + "_personal_card_report.xlsx";
+        String[] headers = {"Sender Card Number",
+                "Sender Balance",
+                "Transaction Type",
+                "ATM Name",
+                "Recipient Card Number",
+                "Amount",
+                "Recipient Balance",
+                "Timestamp"};
+
+        return reportService.reportConfig(fileName, "personal", cardTransactionDetails, headers);
     }
 
 }

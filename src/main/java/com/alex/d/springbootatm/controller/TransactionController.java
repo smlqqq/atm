@@ -69,7 +69,7 @@ public class TransactionController {
 
         try {
             log.info("Transactions of {} from card {} to card {} was successful.", amount, sender, recipient);
-            TransactionResponse transactionResponse = atmService.transferBetweenCards(sender, recipient, amount);
+            TransactionResponse transactionResponse = atmService.processCardTransaction(sender, recipient, amount);
             return ResponseEntity.status(HttpStatus.OK).body(transactionResponse);
         } catch (CardNotFoundException e) {
 

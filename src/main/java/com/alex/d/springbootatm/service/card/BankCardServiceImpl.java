@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,29 +25,33 @@ public class BankCardServiceImpl implements BankCardService {
     @Autowired
     private KafkaProducerService kafkaProducerService;
     @Autowired
-    private AtmService atmService;
-    @Autowired
     private BankCardGenerationService bankCardGenerationService;
 
     @Override
     @Transactional
-    public List<BankCardDto> getAllCards() {
+    public List<BankCardDto> fetchAllBankCardsData() {
         return cardRepository.findAll().stream()
                 .map(card -> BankCardDto.builder()
                         .cardNumber(card.getCardNumber())
-                        .pin(card.getPinNumber())
+//                        .pin(card.getPinNumber())
                         .balance(card.getBalance())
                         .build()
                 )
                 .toList();
     }
 
+    @Override
+    public BankCard fetchCardFromDb(String card) {
+        return cardRepository.findByCardNumber(card)
+                .orElseThrow(() -> new CardNotFoundException("Card not found: " + card));
+    }
+
 
     @Override
     @Transactional
-    public BankCardDto deleteCardByNumber(String cardNumber) {
+    public BankCardDto deleteBankCardByNumber(String cardNumber) {
 
-        Optional<BankCard> optCard = Optional.ofNullable(atmService.fetchCardFromDb(cardNumber));
+        Optional<BankCard> optCard = Optional.ofNullable(fetchCardFromDb(cardNumber));
 
         if (optCard.isPresent()) {
             cardRepository.delete(optCard.get());
@@ -63,39 +68,52 @@ public class BankCardServiceImpl implements BankCardService {
 
 
     @Override
-    public BankCardDto createCard() {
+    public BankCardDto createBankCard() {
 
-        String pinCode = bankCardGenerationService.generatePinCode();
+//        String pinCode = bankCardGenerationService.generatePinCode();
 
-        BankCard bankCard = bankCardGenerationService.buildCardModel(pinCode);
+        char[] password = bankCardGenerationService.pinCodeGenerator();
 
-        BankCardDto savedCard = saveCardToDB(bankCard);
+        BankCard bankCard = bankCardGenerationService.buildCardModel(Arrays.toString(password));
+        BankCardDto savedCard = saveBankCardToDB(bankCard);
 
-        log.info("Card created and saved into db {} hashed pin code {}", savedCard.getCardNumber(), savedCard.getPin());
+        log.info("Card successfully created {} pin {}", savedCard.getCardNumber(), password);
+        Arrays.fill(password, '\0');
+
+        log.info("Card created and saved into db {}", savedCard.getCardNumber());
 
         kafkaProducerService.setKafkaProducerServiceMessage(
                 BankCardDto.builder()
                         .cardNumber(savedCard.getCardNumber())
-                        .pin("***")
                         .balance(savedCard.getBalance())
                         .build(),
                 KafkaTopic.KAFKA_MANAGER_TOPIC.getTopicName());
 
         return BankCardDto.builder()
                 .cardNumber(savedCard.getCardNumber())
-                .pin(pinCode)
+//                .pin(pinCode)
                 .balance(savedCard.getBalance())
                 .build();
     }
 
 
+//    @Override
+//    @Transactional
+//    public BankCardDto saveCardToDB(BankCard card) {
+//        BankCard savedCard = cardRepository.save(card);
+//        return BankCardDto.builder()
+//                .cardNumber(savedCard.getCardNumber())
+//                .pin(savedCard.getPinNumber())
+//                .balance(savedCard.getBalance())
+//                .build();
+//    }
+
     @Override
     @Transactional
-    public BankCardDto saveCardToDB(BankCard card) {
+    public BankCardDto saveBankCardToDB(BankCard card) {
         BankCard savedCard = cardRepository.save(card);
         return BankCardDto.builder()
                 .cardNumber(savedCard.getCardNumber())
-                .pin(savedCard.getPinNumber())
                 .balance(savedCard.getBalance())
                 .build();
     }

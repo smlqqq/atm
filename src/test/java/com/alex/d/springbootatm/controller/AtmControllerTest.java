@@ -47,7 +47,7 @@ class AtmControllerTest {
         BigDecimal amount = BigDecimal.valueOf(500);
         DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount.toPlainString());
 
-        when(atmService.updateAccountBalance(cardNumber, amount, true)).thenReturn(transactionResponse);
+        when(atmService.processWithdrawalOrDeposit(cardNumber, amount, true)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = atmController.deposit(cardNumber, amount);
 
@@ -68,7 +68,7 @@ class AtmControllerTest {
         DepositeResponse transactionResponse = new DepositeResponse(cardNumber, amount.toPlainString());
 
         when(atmService.checkBalanceByCardNumber(cardNumber)).thenReturn(balanceResponse);
-        when(atmService.updateAccountBalance(cardNumber, amount, false)).thenReturn(transactionResponse);
+        when(atmService.processWithdrawalOrDeposit(cardNumber, amount, false)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = atmController.withdraw(cardNumber, amount);
 

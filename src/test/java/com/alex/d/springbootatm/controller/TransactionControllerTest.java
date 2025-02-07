@@ -43,7 +43,7 @@ class TransactionControllerTest {
         );
 
         when(atmService.checkBalanceByCardNumber(senderCardNumber)).thenReturn(new BalanceResponse(senderCardNumber, senderBalance));
-        when(atmService.transferBetweenCards(senderCardNumber, recipientCardNumber, amount)).thenReturn(transactionResponse);
+        when(atmService.processCardTransaction(senderCardNumber, recipientCardNumber, amount)).thenReturn(transactionResponse);
 
         ResponseEntity<?> response = transactionController.transfer(senderCardNumber, recipientCardNumber, amount);
 
