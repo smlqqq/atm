@@ -37,4 +37,5 @@ logs/
 *.log
 *.gz
 *.xls
+*.xlsx
 *.env

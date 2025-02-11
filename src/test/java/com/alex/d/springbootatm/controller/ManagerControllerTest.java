@@ -49,7 +49,7 @@ class ManagerControllerTest {
         for (BankCard card : cards) {
             BankCardDto bankCardDto = BankCardDto.builder()
                     .cardNumber(card.getCardNumber())
-                    .pin(card.getPinNumber())
+//                    .pin(card.getPinNumber())
                     .balance(card.getBalance())
                     .build();
             bankCardDtos.add(bankCardDto);
@@ -70,7 +70,7 @@ class ManagerControllerTest {
         BankCard bankCard = new BankCard(1L, cardNumber, "5356", BigDecimal.valueOf(300));
         BankCardDto dto = BankCardDto.builder()
                         .cardNumber(bankCard.getCardNumber())
-                                .pin(bankCard.getPinNumber())
+//                                .pin(bankCard.getPinNumber())
                                         .balance(bankCard.getBalance())
                                                 .build();
 
@@ -87,7 +87,7 @@ class ManagerControllerTest {
         BankCard bankCard = new BankCard(1L,"4000003813378680", "3256", BigDecimal.valueOf(0));
         BankCardDto dto = BankCardDto.builder()
                 .cardNumber(bankCard.getCardNumber())
-                .pin(bankCard.getPinNumber())
+//                .pin(bankCard.getPinNumber())
                 .balance(bankCard.getBalance())
                 .build();
 

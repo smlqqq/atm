@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 public class BalanceResponse extends CardResponse{
 
     @JsonProperty("balance")
-    @Schema(description = "Balance after operation", example = "1300")
+    @Schema(description = "card balance", example = "1000")
     private BigDecimal balance;
 
     @Builder
