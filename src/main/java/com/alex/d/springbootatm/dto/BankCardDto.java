@@ -10,12 +10,12 @@ import java.math.BigDecimal;
 @Builder
 public class BankCardDto {
 
-    @JsonProperty("card number")
-    @Schema(description = "card number", example = "4000009739800475")
+//    @JsonProperty("card number")
+//    @Schema(description = "card number", example = "4000009739800475")
     String cardNumber;
 
-    @JsonProperty("balance")
-    @Schema(description = "card balance", example = "1000")
+//    @JsonProperty("balance")
+//    @Schema(description = "card balance", example = "1000")
     BigDecimal balance;
 
 }

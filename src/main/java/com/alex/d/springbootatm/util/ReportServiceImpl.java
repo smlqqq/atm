@@ -1,9 +1,7 @@
 package com.alex.d.springbootatm.util;
 
-import com.alex.d.springbootatm.dto.BankCardDto;
-import com.alex.d.springbootatm.dto.BankCardTransactionDto;
-import com.alex.d.springbootatm.service.atm.BankCardTransactionDetailsServiceImpl;
-import com.alex.d.springbootatm.service.card.BankCardService;
+import com.alex.d.springbootatm.model.response.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -19,46 +17,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Service
 public class ReportServiceImpl implements ReportService {
 
-    private final BankCardTransactionDetailsServiceImpl transactionService;
-    private final BankCardService bankCardService;
-
-    public ReportServiceImpl(BankCardTransactionDetailsServiceImpl transactionService, BankCardService bankCardService) {
-        this.transactionService = transactionService;
-        this.bankCardService = bankCardService;
-    }
-
-
-    public ResponseEntity<?> generateReport() {
-
-        List<BankCardDto> cardsDetails = bankCardService.fetchAllBankCardsData();
-        String[] headers = {"Card", "Hashed Pin", "Balance"};
-
-        return reportConfig("report.xls", "clients", cardsDetails, headers);
-    }
-
-    public ResponseEntity<?> generateReportByCardNumber(String cardNumber) {
-
-        List<BankCardTransactionDto> cardTransactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
-
-        String fileName = cardNumber + "_personal_card_report.xlsx";
-        String[] headers = {"Sender Card Number",
-                "Sender Balance",
-                "Transaction Type",
-                "ATM Name",
-                "Recipient Card Number",
-                "Amount",
-                "Recipient Balance",
-                "Timestamp"};
-
-        return reportConfig(fileName, "personal", cardTransactionDetails, headers);
-    }
-
-
+    @Override
     public ResponseEntity<?> createReport(String fileName) {
         File file = new File(fileName);
         Resource resource = new FileSystemResource(file);
@@ -67,20 +34,54 @@ public class ReportServiceImpl implements ReportService {
                 .body(resource);
     }
 
-    public void autoSizeColumns(Sheet sheet, int columnCount) {
+
+    private void autoSizeColumns(Sheet sheet, int columnCount) {
         for (int i = 0; i < columnCount; i++) {
             sheet.autoSizeColumn(i);
         }
     }
 
-    public void addHeaders(Sheet sheet, String... headers) {
+    @Override
+    public List<String> createHeaders(String... headers) {
+        return Arrays.asList(headers);
+    }
+
+
+    private void addHeaders(Sheet sheet, List<String> headers) {
         Row headerRow = sheet.createRow(0);
-        for (int i = 0; i < headers.length; i++) {
-            headerRow.createCell(i).setCellValue(headers[i]);
+        for (int i = 0; i < headers.size(); i++) {
+            headerRow.createCell(i).setCellValue(headers.get(i));
         }
     }
 
-    public <T> ResponseEntity<?> reportConfig(String fileName, String sheetName, List<T> methods, String[] headers) {
+
+    private void fillRowFromObject(Row row, Object item, List<Field> fields) {
+        for (int i = 0; i < fields.size(); i++) {
+            Field field = fields.get(i);
+            field.setAccessible(true);
+            try {
+                Object value = field.get(item);
+                row.createCell(i).setCellValue(value != null ? value.toString() : "null");
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Error accessing field: " + field.getName(), e);
+            }
+        }
+    }
+
+    private void fillRowWithNulls(Row row, int columnsCount) {
+        for (int i = 0; i < columnsCount; i++) {
+            row.createCell(i).setCellValue("null");
+        }
+    }
+
+    @Override
+    public <T> ResponseEntity<?> reportConfig(String fileName, String sheetName, List<T> objectData, List<String> headers) {
+
+        if (objectData.isEmpty()) {
+            log.error("No object data found");
+            ErrorResponse errorResponse = new ErrorResponse(Instant.now(), "404", "No object data found", "/cards/export/excel");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
 
         try (Workbook workbook = new XSSFWorkbook()) {
 
@@ -90,25 +91,16 @@ public class ReportServiceImpl implements ReportService {
 
             int rowNum = 1;
 
-            Class<?> dtoClass = methods.get(0).getClass();
+            // TODO нулевые значения объекта выбрасывают исключение IndexOutOfBoundException
+            Class<?> dtoClass = objectData.get(0).getClass();
+            List<Field> fields = Arrays.asList(dtoClass.getDeclaredFields());
 
-            Field[] fields = dtoClass.getDeclaredFields();
-
-            //Fill data
-            for (T dto : methods) {
+            for (T item : objectData) {
                 Row row = sheet.createRow(rowNum++);
-                for (int i = 0; i < fields.length; i++) {
-                    fields[i].setAccessible(true);
-                    try {
-                        Object value = fields[i].get(dto);
-                        row.createCell(i).setCellValue(value != null ? value.toString() : "");
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+                fillRowFromObject(row, item, fields);
             }
 
-            autoSizeColumns(sheet, headers.length);
+            autoSizeColumns(sheet, headers.size());
 
             try (FileOutputStream outputStream = new FileOutputStream(fileName)) {
                 workbook.write(outputStream);
@@ -117,6 +109,7 @@ public class ReportServiceImpl implements ReportService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        log.info("Report successfully created {}", fileName);
         return createReport(fileName);
     }
 

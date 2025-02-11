@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationConfig {
 
     @Bean(name = "org.OpenSolaris.configuration.SpringDocConfiguration.apiInfo")
-    OpenAPI apiInfo() {
+    public OpenAPI apiInfo() {
         return new OpenAPI()
                 .info(
                         new Info()
@@ -30,7 +30,23 @@ public class ApplicationConfig {
                                 )
                                 .version("0.0.1")
                 )
-        ;
+                ;
     }
+// TODO позже добавить весенний сесурити
+
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers(
+//                                "/api/v1/create",
+//                                "/swagger-ui.html",       // Swagger UI
+//                                "/v3/api-docs/**",        // OpenAPI JSON
+//                                "/actuator/**"            // Actuator
+//                        ).permitAll()
+//                        .anyRequest().authenticated()
+//                );
+//        return http.build();
+//    }
 
 }

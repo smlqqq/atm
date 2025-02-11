@@ -3,9 +3,11 @@ package com.alex.d.springbootatm.controller;
 import com.alex.d.springbootatm.dto.BankCardTransactionDto;
 import com.alex.d.springbootatm.exception.CardNotFoundException;
 import com.alex.d.springbootatm.dto.BankCardDto;
+import com.alex.d.springbootatm.model.response.CardResponse;
 import com.alex.d.springbootatm.model.response.ErrorResponse;
 import com.alex.d.springbootatm.service.atm.BankCardTransactionDetailsService;
 import com.alex.d.springbootatm.service.card.BankCardService;
+import com.alex.d.springbootatm.util.ExportExcelReportService;
 import com.alex.d.springbootatm.util.ReportService;
 import com.alex.d.springbootatm.util.ReportServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,22 +30,20 @@ import java.util.List;
 @Tag(name = "Manager")
 public class ManagerController {
 
-    @Autowired
-    private BankCardService bankCardService;
+    private final BankCardService bankCardService;
+    private final ExportExcelReportService exportExcelReportService;
 
-    @Autowired
-    private ReportService reportService;
-
-    @Autowired
-    private BankCardTransactionDetailsService transactionService;
-
+    public ManagerController(BankCardService bankCardService, ExportExcelReportService exportExcelReportService) {
+        this.bankCardService = bankCardService;
+        this.exportExcelReportService = exportExcelReportService;
+    }
 
     @Operation(
             summary = "Get all data",
             description = "Retrieve details of all bank cards",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardDto.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardResponse.class))
                     })
             }
     )
@@ -62,7 +62,7 @@ public class ManagerController {
             description = "Delete all details about card",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardDto.class))}),
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardResponse.class))}),
                     @ApiResponse(responseCode = "400", description = "Bad request", content = {
                             @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = ErrorResponse.class))}),
                     @ApiResponse(responseCode = "404", description = "Not found", content = {
@@ -96,7 +96,7 @@ public class ManagerController {
             description = "Create a new bank card using the provided details",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Created", content = {
-                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = BankCardDto.class))
+                            @Content(mediaType = "application/json;charset=UTF-8", schema = @Schema(implementation = CardResponse.class))
                     })
 
             }
@@ -122,13 +122,7 @@ public class ManagerController {
     )
     @GetMapping("/cards/export/excel")
     public ResponseEntity<?> exportAllBankCardsReportToExcel() {
-//        return reportServiceImpl.generateReport();
-
-        List<BankCardDto> cardsDetails = bankCardService.fetchAllBankCardsData();
-        String[] headers = {"Card", "Hashed Pin", "Balance"};
-
-        return reportService.reportConfig("report.xls", "clients", cardsDetails, headers);
-
+     return exportExcelReportService.exportCardsDataToExcel();
     }
 
     @Operation(
@@ -144,20 +138,7 @@ public class ManagerController {
 
     @GetMapping("/cards/export/excel/{card}")
     public ResponseEntity<?> exportIndividualClientReportToExcel(@PathVariable("card") String cardNumber) {
-//        return reportServiceImpl.generateReportByCardNumber(card);
-        List<BankCardTransactionDto> cardTransactionDetails = transactionService.getTransactionDetailsByCardNumber(cardNumber);
-
-        String fileName = cardNumber + "_personal_card_report.xlsx";
-        String[] headers = {"Sender Card Number",
-                "Sender Balance",
-                "Transaction Type",
-                "ATM Name",
-                "Recipient Card Number",
-                "Amount",
-                "Recipient Balance",
-                "Timestamp"};
-
-        return reportService.reportConfig(fileName, "personal", cardTransactionDetails, headers);
+        return exportExcelReportService.exportCardTransactionsHistoryToExcel(cardNumber);
     }
 
 }
