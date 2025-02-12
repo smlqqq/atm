@@ -80,8 +80,8 @@ public class ManagerController {
         try {
             BankCardDto bankCardDto = bankCardService.deleteBankCardByNumber(card);
             return ResponseEntity.status(HttpStatus.OK).body(BankCardDto.builder()
-                    .cardNumber(bankCardDto.getCardNumber())
-                    .balance(bankCardDto.getBalance())
+                    .cardNumber(bankCardDto.cardNumber())
+                    .balance(bankCardDto.balance())
                     .build()
             );
         } catch (CardNotFoundException e) {

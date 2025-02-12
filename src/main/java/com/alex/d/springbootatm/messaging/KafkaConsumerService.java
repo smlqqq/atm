@@ -1,6 +1,6 @@
 package com.alex.d.springbootatm.messaging;
 
-import com.alex.d.springbootatm.model.dto.CardDto;
+import com.alex.d.springbootatm.dto.BankCardDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,17 +29,17 @@ public class KafkaConsumerService {
         try {
             switch (topic) {
                 case "manager-topic":
-                    CardDto managerCardDto = objectMapper.readValue(message, CardDto.class);
+                    BankCardDto managerCardDto = objectMapper.readValue(message, BankCardDto.class);
                     objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
                     log.info("Kafka message from managerController: {}", objectMapper.writeValueAsString(managerCardDto));
                     break;
                 case "transaction-topic":
-                    CardDto transactionSenderCardDto = objectMapper.readValue(message, CardDto.class);
-                    CardDto transactionrecipientCardDto = objectMapper.readValue(message, CardDto.class);
+                    BankCardDto transactionSenderCardDto = objectMapper.readValue(message, BankCardDto.class);
+                    BankCardDto transactionrecipientCardDto = objectMapper.readValue(message, BankCardDto.class);
                     objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
                     log.info("Kafka message from transactionController: {} {}", objectMapper.writeValueAsString(transactionSenderCardDto), objectMapper.writeValueAsString(transactionrecipientCardDto));
                 case "atm-topic":
-                    CardDto atmCardDto  = objectMapper.readValue(message, CardDto.class);
+                    BankCardDto atmCardDto  = objectMapper.readValue(message, BankCardDto.class);
                     objectMapper.enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
                     log.info("Kafka message from atmController: {}", objectMapper.writeValueAsString(atmCardDto));
                     break;

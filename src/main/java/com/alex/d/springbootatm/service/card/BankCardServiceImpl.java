@@ -20,12 +20,15 @@ import java.util.Optional;
 @Service
 public class BankCardServiceImpl implements BankCardService {
 
-    @Autowired
-    private CardRepository cardRepository;
-    @Autowired
-    private KafkaProducerService kafkaProducerService;
-    @Autowired
-    private BankCardGenerationService bankCardGenerationService;
+    private final CardRepository cardRepository;
+    private final KafkaProducerService kafkaProducerService;
+    private final BankCardGenerationService bankCardGenerationService;
+
+    public BankCardServiceImpl(CardRepository cardRepository, KafkaProducerService kafkaProducerService, BankCardGenerationService bankCardGenerationService) {
+        this.cardRepository = cardRepository;
+        this.kafkaProducerService = kafkaProducerService;
+        this.bankCardGenerationService = bankCardGenerationService;
+    }
 
     @Override
     @Transactional
@@ -75,24 +78,24 @@ public class BankCardServiceImpl implements BankCardService {
         char[] password = bankCardGenerationService.pinCodeGenerator();
 
         BankCard bankCard = bankCardGenerationService.buildCardModel(Arrays.toString(password));
-        BankCardDto savedCard = saveBankCardToDB(bankCard);
+        BankCardDto saveBankCardDTO = saveBankCardToDB(bankCard);
 
-        log.info("Card successfully created {} pin {}", savedCard.getCardNumber(), password);
+        log.info("Card successfully created {} pin {}", saveBankCardDTO.cardNumber(), password);
         Arrays.fill(password, '\0');
 
-        log.info("Card created and saved into db {}", savedCard.getCardNumber());
+        log.info("Card created and saved into db {}", saveBankCardDTO.cardNumber());
 
         kafkaProducerService.setKafkaProducerServiceMessage(
                 BankCardDto.builder()
-                        .cardNumber(savedCard.getCardNumber())
-                        .balance(savedCard.getBalance())
+                        .cardNumber(saveBankCardDTO.cardNumber())
+                        .balance(saveBankCardDTO.balance())
                         .build(),
                 KafkaTopic.KAFKA_MANAGER_TOPIC.getTopicName());
 
         return BankCardDto.builder()
-                .cardNumber(savedCard.getCardNumber())
+                .cardNumber(saveBankCardDTO.cardNumber())
 //                .pin(pinCode)
-                .balance(savedCard.getBalance())
+                .balance(saveBankCardDTO.balance())
                 .build();
     }
 
