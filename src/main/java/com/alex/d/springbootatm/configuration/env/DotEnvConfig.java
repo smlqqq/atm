@@ -17,9 +17,9 @@ public class DotEnvConfig {
         System.setProperty("DB_USERNAME", Objects.requireNonNull(dotenv.get("DB_USERNAME")));
         System.setProperty("DB_PASSWORD", Objects.requireNonNull(dotenv.get("DB_PASSWORD")));
         System.setProperty("PRELIQUIBASE_SCHEMA_NAME", Objects.requireNonNull(dotenv.get("PRELIQUIBASE_SCHEMA_NAME")));
-        System.setProperty("CLICK_HOUSE_URL", Objects.requireNonNull(dotenv.get("CLICK_HOUSE_URL")));
-        System.setProperty("CLICK_HOUSE_USER", Objects.requireNonNull(dotenv.get("CLICK_HOUSE_USER")));
-        System.setProperty("CLICK_HOUSE_PASSWORD", Objects.requireNonNull(dotenv.get("CLICK_HOUSE_PASSWORD")));
+//        System.setProperty("CLICK_HOUSE_URL", Objects.requireNonNull(dotenv.get("CLICK_HOUSE_URL")));
+//        System.setProperty("CLICK_HOUSE_USER", Objects.requireNonNull(dotenv.get("CLICK_HOUSE_USER")));
+//        System.setProperty("CLICK_HOUSE_PASSWORD", Objects.requireNonNull(dotenv.get("CLICK_HOUSE_PASSWORD")));
 
         return dotenv;
     }

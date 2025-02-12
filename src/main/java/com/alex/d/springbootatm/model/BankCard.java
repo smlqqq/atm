@@ -31,10 +31,10 @@ public class BankCard {
     @Column(name = "balance")
     private BigDecimal balance;
 
-    @OneToMany(mappedBy = "senderCard") // Field senderCard in BankCardTransaction
+    @OneToMany(mappedBy = "senderCard", fetch = FetchType.LAZY) // Field senderCard in BankCardTransaction
     private Set<BankCardTransaction> sentTransactions;
 
-    @OneToMany(mappedBy = "recipientCard") // Field recipientCard in BankCardTransaction
+    @OneToMany(mappedBy = "recipientCard", fetch = FetchType.LAZY) // Field recipientCard in BankCardTransaction
     private Set<BankCardTransaction> receivedTransactions;
 
     public BankCard(Long id, String cardNumber, String pinNumber, BigDecimal balance) {

@@ -5,18 +5,14 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Value
 @Builder
-public class BankCardTransactionDto {
-
-    String sender;
-    BigDecimal senderBalance;
-    String transactionType;
-    String atmName;
-    String recipient;
-    BigDecimal amount;
-    BigDecimal recipientBalance;
-    LocalDateTime timestamp;
-
-
+public record BankCardTransactionDto(
+        String sender,
+        BigDecimal senderBalance,
+        String transactionType,
+        String atmName,
+        String recipient,
+        BigDecimal amount,
+        BigDecimal recipientBalance,
+        LocalDateTime timestamp) {
 }
